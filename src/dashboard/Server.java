@@ -58,6 +58,8 @@ public class Server {
         	writer4.println(tableRows4.get(i).getText());
         }
         writer4.close();
+        
+       driver.close();
 	}
 	
 	
