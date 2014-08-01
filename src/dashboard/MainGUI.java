@@ -173,7 +173,7 @@ public class MainGUI extends JPanel
     {
     	for (int i=0; i<20;i++)
     	{
-    		int num = 63030+ (123*i);
+    		int num = 63055+ (123*i);
     		String s = ""+num;
     		ListItem li= new ListItem(s);
     		if (i>=10)
@@ -216,13 +216,26 @@ public class MainGUI extends JPanel
 			        	bGatherInfo.setEnabled(false);
 			            FIST.user=sFistUser;
 			            FIST.pass=sFistPass;
-			            FIST.login(screenSize);
+			            FIST.startDriver(screenSize);
+			            
+			            FIST.loginProd();
 			        	getCurrentItem().setDevName(FIST.getDevName(getCurrentItem().getFileID()));
 			        	tfDeveloperName.setText(getCurrentItem().getDevName());
 			        	getCurrentItem().setServiceLocation(FIST.getLocation(getCurrentItem().getFileID()));
 			        	tfServiceName.setText(getCurrentItem().getServiceLocation());
+			        	
+			        	FIST.loginConfig();
+			        	FIST.getExpectationsPage(getCurrentItem().getFileID(),"07/28/2014");
+			        	
+			        	getCurrentItem().setEnvironment(FIST.getEnvironment());
+			        	tfEnvironment.setText(getCurrentItem().getEnvironment());
+			        	getCurrentItem().setExpectID(FIST.getExpectID());
+			        	tfExpectationID.setText(getCurrentItem().getExpectID());
+			        	getCurrentItem().setAnalystName(FIST.getAnalyst());
+			        	tfAnalystName.setText(getCurrentItem().getAnalystName());
 			        	FIST.driver.close();
 			        	bGatherInfo.setEnabled(true);
+			       
 			        	
 			            }}).start();}});
 		

@@ -3,10 +3,13 @@ package dashboard;
 public class ListItem {
 
 	private String fileID;
+	private String expectID;
 	private String dateTime;
 	private boolean isFinished;
 	private String devName;
+	private String analystName;
 	private String serviceLocation;
+	private String environment;
 	
 	public ListItem(String fileID)
 	{
@@ -57,6 +60,36 @@ public class ListItem {
 
 	public void setServiceLocation(String serviceLocation) {
 		this.serviceLocation = serviceLocation;
+	}
+
+
+	public String getEnvironment() {
+		return environment;
+	}
+
+
+	public void setEnvironment(String environment) {
+		this.environment = environment;
+	}
+
+
+	public String getExpectID() {
+		return expectID;
+	}
+
+
+	public void setExpectID(String expectID) {
+		this.expectID = expectID;
+	}
+
+
+	public String getAnalystName() {
+		return analystName;
+	}
+
+
+	public void setAnalystName(String analystName) {
+		this.analystName = analystName;
 	}
 	
 	
