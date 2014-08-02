@@ -1,22 +1,40 @@
 package dashboard;
 
+import java.util.ArrayList;
+
 public class ListItem {
 
-	private String fileID;
-	private String expectID;
-	private String dateTime;
 	private boolean isFinished;
+	private String fileID;
 	private String devName;
-	private String analystName;
+	private String dateTime;
 	private String serviceLocation;
-	private String environment;
+	
+	private int expectNum;
+	private ArrayList <String> expectDateList;
+	private ArrayList <String> expectIDList;
+	private ArrayList <String> statusList;
+	private ArrayList <String> analystNameList;
+	private ArrayList <String> environmentList;
+	private ArrayList <String> startTimeList;
+	private ArrayList <String> endTimeList;
 	
 	public ListItem(String fileID)
 	{
-		this.fileID=fileID;
 		isFinished=false;
+		this.fileID=fileID;
 		devName="";
-		setServiceLocation("");
+		dateTime="";
+		serviceLocation="";
+		
+		expectNum=0;
+		expectIDList = new ArrayList <String> ();
+		statusList = new ArrayList <String> ();
+		analystNameList = new ArrayList <String> ();
+		environmentList = new ArrayList <String> ();
+		expectDateList = new ArrayList <String> ();
+		startTimeList = new ArrayList <String> ();
+		endTimeList = new ArrayList <String> ();
 	}
 
 	
@@ -63,34 +81,84 @@ public class ListItem {
 	}
 
 
-	public String getEnvironment() {
-		return environment;
+	public ArrayList <String> getExpectIDList() {
+		return expectIDList;
 	}
 
 
-	public void setEnvironment(String environment) {
-		this.environment = environment;
+	public void addExpectIDListItem(String expectIDList) {
+		this.expectIDList.add(expectIDList);
 	}
 
 
-	public String getExpectID() {
-		return expectID;
+	public ArrayList <String> getStatusList() {
+		return statusList;
 	}
 
 
-	public void setExpectID(String expectID) {
-		this.expectID = expectID;
+	public void addStatusListItem(String statusList) {
+		this.statusList.add(statusList);
 	}
 
 
-	public String getAnalystName() {
-		return analystName;
+	public ArrayList <String> getAnalystNameList() {
+		return analystNameList;
 	}
 
 
-	public void setAnalystName(String analystName) {
-		this.analystName = analystName;
+	public void addAnalystNameListItem(String analystNameList) {
+		this.analystNameList.add(analystNameList);
 	}
-	
+
+
+	public ArrayList <String> getEnvironmentList() {
+		return environmentList;
+	}
+
+
+	public void addEnvironmentListItem(String environmentList) {
+		this.environmentList.add(environmentList);
+	}
+
+
+	public ArrayList <String> getStartTimeList() {
+		return startTimeList;
+	}
+
+
+	public void addStartTimeListItem(String startTimeList) {
+		this.startTimeList.add(startTimeList);
+	}
+
+
+	public ArrayList <String> getEndTimeList() {
+		return endTimeList;
+	}
+
+
+	public void addEndTimeListItem(String endTimeList) {
+		this.endTimeList.add(endTimeList);
+	}
+
+
+	public int getExpectNum() {
+		return expectNum;
+	}
+
+
+	public void setExpectNum(int expectNum) {
+		this.expectNum = expectNum;
+	}
+
+
+	public ArrayList <String> getExpectDateList() {
+		return expectDateList;
+	}
+
+
+	public void addExpectDateListItem(String expectDate) {
+		this.expectDateList.add(expectDate);
+	}
+
 	
 }

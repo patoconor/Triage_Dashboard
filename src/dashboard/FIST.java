@@ -91,27 +91,84 @@ public class FIST  {
         we.click();
 	}
 	
-	public static String getEnvironment()
+	public static int getNumberOfExpectations()
 	{
 		//must call getExpectationsPage first
-		String xpath = "//form[@name='expectationsform']/table/tbody/tr[2]/td/table/tbody/tr/td/table/tbody/tr[4]/td/table/tbody/tr/td/table/tbody/tr[2]/td[3]/span";
-		we = driver.findElement(By.xpath(xpath));
+		String xpathStart = "//form[@name='expectationsform']/table/tbody/tr[2]/td/table/tbody/tr/td/table/tbody/tr[4]/td/table/tbody/tr/td/table/tbody/tr[";
+		String xpathEnd = "]/td[19]/span";
+		int expectNum=0;
+		
+		for (int i = 2;driver.findElements(By.xpath(xpathStart + i + xpathEnd)).size()!=0;i++)
+		{
+			expectNum=i-1;
+		}
+		
+		return expectNum;
+	}
+	
+	public static String getEnvironment(int num)
+	{
+		//must call getExpectationsPage first
+		String xpathStart = "//form[@name='expectationsform']/table/tbody/tr[2]/td/table/tbody/tr/td/table/tbody/tr[4]/td/table/tbody/tr/td/table/tbody/tr[";
+		String xpathEnd = "]/td[3]/span";
+		we = driver.findElement(By.xpath(xpathStart + num + xpathEnd));
 		return we.getText();
 	}
 	
-	public static String getExpectID()
+	public static String getExpectID(int num)
 	{
 		//must call getExpectationsPage first
-		String xpath = "//form[@name='expectationsform']/table/tbody/tr[2]/td/table/tbody/tr/td/table/tbody/tr[4]/td/table/tbody/tr/td/table/tbody/tr[2]/td[19]/span";
-		we = driver.findElement(By.xpath(xpath));
+		String xpathStart = "//form[@name='expectationsform']/table/tbody/tr[2]/td/table/tbody/tr/td/table/tbody/tr[4]/td/table/tbody/tr/td/table/tbody/tr[";
+		String xpathEnd = "]/td[19]/span";
+		we = driver.findElement(By.xpath(xpathStart + num + xpathEnd));
 		return we.getText();
 	}
 	
-	public static String getAnalyst()
+	public static String getExpectStatus(int num)
 	{
 		//must call getExpectationsPage first
-				String xpath = "//form[@name='expectationsform']/table/tbody/tr[2]/td/table/tbody/tr/td/table/tbody/tr[4]/td/table/tbody/tr/td/table/tbody/tr[2]/td[17]/select/option[@value='2']";
-				we = driver.findElement(By.xpath(xpath));
+		String xpathStart = "//form[@name='expectationsform']/table/tbody/tr[2]/td/table/tbody/tr/td/table/tbody/tr[4]/td/table/tbody/tr/td/table/tbody/tr[";
+		String xpathEnd = "]/td[9]/select";
+		Select select = new Select(driver.findElement(By.xpath(xpathStart + num + xpathEnd)));
+		we = select.getFirstSelectedOption();
+		return we.getText();
+	}
+	
+	public static String getExpectDate(int num)
+	{
+		//must call getExpectationsPage first
+		String xpathStart = "//form[@name='expectationsform']/table/tbody/tr[2]/td/table/tbody/tr/td/table/tbody/tr[4]/td/table/tbody/tr/td/table/tbody/tr[";
+		String xpathEnd = "]/td[5]/input";
+		we = driver.findElement(By.xpath(xpathStart + num + xpathEnd));
+		return we.getAttribute("value");
+	}
+	
+	public static String getStartTime(int num)
+	{
+		//must call getExpectationsPage first
+		String xpathStart = "//form[@name='expectationsform']/table/tbody/tr[2]/td/table/tbody/tr/td/table/tbody/tr[4]/td/table/tbody/tr/td/table/tbody/tr[";
+		String xpathEnd = "]/td[11]/span";
+		we = driver.findElement(By.xpath(xpathStart + num + xpathEnd));
+		return we.getText();
+	}
+	
+	public static String getEndTime(int num)
+	{
+		//must call getExpectationsPage first
+		String xpathStart = "//form[@name='expectationsform']/table/tbody/tr[2]/td/table/tbody/tr/td/table/tbody/tr[4]/td/table/tbody/tr/td/table/tbody/tr[";
+		String xpathEnd = "]/td[12]/span";
+		we = driver.findElement(By.xpath(xpathStart + num + xpathEnd));
+		return we.getText();
+	}
+	
+	public static String getAnalyst(int num)
+	{
+		//call this last since it's on a different page than the other expectation items
+		//must call getExpectationsPage first
+				String xpathStart ="//form[@name='expectationsform']/table/tbody/tr[2]/td/table/tbody/tr/td/table/tbody/tr[4]/td/table/tbody/tr/td/table/tbody/tr[";
+				String xpathEnd = "]/td[17]/select/option[@value='2']";
+				
+				we = driver.findElement(By.xpath(xpathStart + num + xpathEnd));
 				we.click();
 				
 				WebDriverWait wait = new WebDriverWait(driver, 10);
@@ -119,7 +176,10 @@ public class FIST  {
 				wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//html/body/table[2]/tbody/tr/td/table/tbody/tr/td[3]/table/tbody/tr/td/div/div/table/tbody/tr[3]/td/form/table[3]/tbody/tr/td/table/tbody/tr[2]/td[4]/span")));
 				
 				we=driver.findElement(By.xpath("//html/body/table[2]/tbody/tr/td/table/tbody/tr/td[3]/table/tbody/tr/td/div/div/table/tbody/tr[3]/td/form/table[3]/tbody/tr/td/table/tbody/tr[2]/td[4]/span"));
-				return we.getText();
+				String sName = we.getText();
+				driver.navigate().back();
+				we=driver.findElement(By.xpath("//html"));
+				return sName;
 	}
 	
 }

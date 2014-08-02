@@ -43,16 +43,22 @@ public class MainGUI extends JPanel
     private JButton bGatherInfo;
     
     private JTextField tfFileID;
-    private JTextField tfExpectationID;
-    private JTextField tfEnvironment;
     private JTextField tfFailTime;
     private JTextField tfServiceName;
-    
-    private JTextField tfAnalystName;
     private JTextField tfDeveloperName;
     
+    private JTextField tfExpectationID;
+    private JTextField tfEnvironment;
+    private JTextField tfAnalystName;
+    private JTextField tfExpectStatus;
+    private JTextField tfStartTime;
+    private JTextField tfEndTime;
+   
     private JTextField tfServerName;
     private JButton bServer;
+    
+    private JComboBox<String> cbExpectationSelect;
+    
     private JButton bServerLog;
     private JButton bErrorLog;
     
@@ -199,13 +205,13 @@ public class MainGUI extends JPanel
     private void setupErrorPanel() {
     	
     	JPanel pGatherArea = new JPanel();
-    	pGatherArea.setBounds(-1,-1,301,71);
+    	pGatherArea.setBounds(-1,-1,301,61);
     	pGatherArea.setLayout(null);
     	pGatherArea.setBorder(BorderFactory.createLineBorder(Color.BLACK));
     	errorViewPanel.add(pGatherArea);
     	
     	bGatherInfo = new JButton();
-    	bGatherInfo.setBounds(20, 10 , 260, 50);
+    	bGatherInfo.setBounds(10, 10 , 280,40);
     	bGatherInfo.setText("Gather Info");
     	pGatherArea.add(bGatherInfo);
     	bGatherInfo.addActionListener(new ActionListener() {
@@ -218,6 +224,7 @@ public class MainGUI extends JPanel
 			            FIST.pass=sFistPass;
 			            FIST.startDriver(screenSize);
 			            
+			            
 			            FIST.loginProd();
 			        	getCurrentItem().setDevName(FIST.getDevName(getCurrentItem().getFileID()));
 			        	tfDeveloperName.setText(getCurrentItem().getDevName());
@@ -227,13 +234,40 @@ public class MainGUI extends JPanel
 			        	FIST.loginConfig();
 			        	FIST.getExpectationsPage(getCurrentItem().getFileID(),"07/28/2014");
 			        	
-			        	getCurrentItem().setEnvironment(FIST.getEnvironment());
-			        	tfEnvironment.setText(getCurrentItem().getEnvironment());
-			        	getCurrentItem().setExpectID(FIST.getExpectID());
-			        	tfExpectationID.setText(getCurrentItem().getExpectID());
+			        	getCurrentItem().setExpectNum(FIST.getNumberOfExpectations());
+			        	
+			        	int counter=1;
+			        	for (int i = getCurrentItem().getExpectNum()+1;i>1;i--)
+			        	{
+			        	getCurrentItem().addEnvironmentListItem(FIST.getEnvironment(i));
+			        	getCurrentItem().addExpectIDListItem(FIST.getExpectID(i));
+			        	getCurrentItem().addStatusListItem(FIST.getExpectStatus(i));
+			        	getCurrentItem().addExpectDateListItem(counter+": "+FIST.getExpectDate(i));
+			        	getCurrentItem().addStartTimeListItem(FIST.getStartTime(i));
+			        	getCurrentItem().addEndTimeListItem(FIST.getEndTime(i));
+			        	getCurrentItem().addAnalystNameListItem(FIST.getAnalyst(i));
+			        	counter++;
+			        	}
+			        	String[] DateArray = new String[getCurrentItem().getExpectDateList().size()];
+			        	DateArray = getCurrentItem().getExpectDateList().toArray(DateArray);
+
+			        	cbExpectationSelect.setModel(new DefaultComboBoxModel<String>(DateArray));
+			        	
+			        	if(getCurrentItem().getExpectNum()>0)
+			        	{
+			        		selectExpectation(0);
+			        	}
+			        	else
+			        	{
+			        		selectExpectation(-1);
+			        	}
+			        	
+			        	/*
 			        	getCurrentItem().setAnalystName(FIST.getAnalyst());
 			        	tfAnalystName.setText(getCurrentItem().getAnalystName());
-			        	FIST.driver.close();
+			        	*/
+			        	
+			        	//FIST.driver.close();
 			        	bGatherInfo.setEnabled(true);
 			       
 			        	
@@ -241,7 +275,8 @@ public class MainGUI extends JPanel
 		
     	
     	JPanel pInfoFields = new JPanel();
-    	pInfoFields.setBounds(-1,69,301,131);
+    	pInfoFields.setBounds(299,-1,301,131);
+    	
     	pInfoFields.setLayout(null);
     	pInfoFields.setBorder(BorderFactory.createLineBorder(Color.BLACK));
     	errorViewPanel.add(pInfoFields);
@@ -257,17 +292,10 @@ public class MainGUI extends JPanel
 		lFileID.setBounds(10, 10, 100, 20);
 		pInfoFields.add(lFileID);
         
-        tfExpectationID = new JTextField();
-        tfExpectationID.setBounds(200,10, 80, 20);
-        tfExpectationID.setEditable(false);
-        tfExpectationID.setBackground(Color.WHITE);
-        pInfoFields.add(tfExpectationID);
-		JLabel lExpectationID = new JLabel("Expectation ID:");
-		lExpectationID.setBounds(110,10, 100, 20);
-		pInfoFields.add(lExpectationID);
+        
 		
 		tfFailTime = new JTextField();
-		tfFailTime.setBounds(110, 10 + 1*yShift, 170, 20);
+		tfFailTime.setBounds(110, 10 + 1*yShift, 180, 20);
 		tfFailTime.setEditable(false);
 		tfFailTime.setBackground(Color.WHITE);
         pInfoFields.add(tfFailTime);
@@ -275,68 +303,128 @@ public class MainGUI extends JPanel
 		lFailTime.setBounds(10, 10 +1*yShift, 100, 20);
 		pInfoFields.add(lFailTime);
 		
-        tfEnvironment = new JTextField();
-        tfEnvironment.setBounds(90, 10 + 2*yShift, 190, 20);
-        tfEnvironment.setEditable(false);
-        tfEnvironment.setBackground(Color.WHITE);
-        pInfoFields.add(tfEnvironment);
-		JLabel lEnvironment = new JLabel("Environment:");
-		lEnvironment.setBounds(10, 10 +2*yShift, 100, 20);
-		pInfoFields.add(lEnvironment);
+        
 		
 		tfServiceName = new JTextField();
-		tfServiceName.setBounds(70, 10 + 3*yShift, 210, 20);
+		tfServiceName.setBounds(70, 10 + 2*yShift, 220, 20);
 		tfServiceName.setEditable(false);
 		tfServiceName.setBackground(Color.WHITE);
         pInfoFields.add(tfServiceName);
 		JLabel lServiceName = new JLabel("Location:");
-		lServiceName.setBounds(10, 10 +3*yShift, 100, 20);
+		lServiceName.setBounds(10, 10 +2*yShift, 100, 20);
 		pInfoFields.add(lServiceName);
 		
-		
-		
-		JPanel pPeopleInfo = new JPanel();
-		pPeopleInfo.setBounds(299,-1,301,71);
-		pPeopleInfo.setLayout(null);
-		pPeopleInfo.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-    	errorViewPanel.add(pPeopleInfo);
-		
-        tfAnalystName = new JTextField();
-        tfAnalystName.setBounds(80, 10, 200, 20);
-        tfAnalystName.setEditable(false);
-        tfAnalystName.setBackground(Color.WHITE);
-        pPeopleInfo.add(tfAnalystName);
-		JLabel lAnalystName = new JLabel("Analyst:");
-		lAnalystName.setBounds(28, 10 , 100, 20);
-		pPeopleInfo.add(lAnalystName);
-        
-        tfDeveloperName = new JTextField();
-        tfDeveloperName.setBounds(80, 10 + 1*yShift, 200, 20);
+		tfDeveloperName = new JTextField();
+        tfDeveloperName.setBounds(77, 10 + 3*yShift, 213, 20);
         tfDeveloperName.setEditable(false);
         tfDeveloperName.setBackground(Color.WHITE);
-        pPeopleInfo.add(tfDeveloperName);
+        pInfoFields.add(tfDeveloperName);
 		JLabel lDeveloperName = new JLabel("Developer:");
-		lDeveloperName.setBounds(13, 10 +1*yShift, 100, 20);
-		pPeopleInfo.add(lDeveloperName);
+		lDeveloperName.setBounds(10, 10 +3*yShift, 100, 20);
+		pInfoFields.add(lDeveloperName);
+		
+		
+		
+		JPanel pExpectations = new JPanel();
+		pExpectations.setBounds(-1,129,601,131);
+		pExpectations.setLayout(null);
+		pExpectations.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+    	errorViewPanel.add(pExpectations);
+    	
+    	/*
+    	JLabel lExpectationHeader = new JLabel("Expectation Information:");
+    	lExpectationHeader.setBounds(232, 0, 200, 20);
+		pExpectations.add(lExpectationHeader);
+		*/
+		
+		cbExpectationSelect = new JComboBox <String> ();
+		cbExpectationSelect.setBounds(115, 10, 174, 20);
+		pExpectations.add(cbExpectationSelect);
+		JLabel lExpectationSelect = new JLabel("Pick Expectation:");
+		lExpectationSelect.setBounds(10,10, 100, 20);
+		pExpectations.add(lExpectationSelect);
+		
+		cbExpectationSelect.addActionListener(new ActionListener() {
+			  public void actionPerformed(ActionEvent evt) {			  
+				  
+				  selectExpectation(cbExpectationSelect.getSelectedIndex());
+			  
+			  
+			  }});
+		
+    	tfExpectationID = new JTextField();
+        tfExpectationID.setBounds(100,10 + 1*yShift, 80, 20);
+        tfExpectationID.setEditable(false);
+        tfExpectationID.setBackground(Color.WHITE);
+        pExpectations.add(tfExpectationID);
+		JLabel lExpectationID = new JLabel("Expectation ID:");
+		lExpectationID.setBounds(10, 10 + 1*yShift, 100, 20);
+		pExpectations.add(lExpectationID);
+		
+		tfExpectStatus = new JTextField();
+		tfExpectStatus.setBounds(56,10 + 2*yShift, 234, 20);
+		tfExpectStatus.setEditable(false);
+		tfExpectStatus.setBackground(Color.WHITE);
+        pExpectations.add(tfExpectStatus);
+		JLabel lExpectStatus = new JLabel("Status:");
+		lExpectStatus.setBounds(10, 10 + 2*yShift, 100, 20);
+		pExpectations.add(lExpectStatus);
+		
+		tfStartTime = new JTextField();
+		tfStartTime.setBounds(380, 10 + 2*yShift, 210, 20);
+		tfStartTime.setEditable(false);
+		tfStartTime.setBackground(Color.WHITE);
+        pExpectations.add(tfStartTime);
+		JLabel lStartTime = new JLabel("Start Time:");
+		lStartTime.setBounds(310, 10 + 2*yShift, 100, 20);
+		pExpectations.add(lStartTime);
+		
+		tfEndTime = new JTextField();
+		tfEndTime.setBounds(380, 10 + 3*yShift, 210, 20);
+		tfEndTime.setEditable(false);
+		tfEndTime.setBackground(Color.WHITE);
+        pExpectations.add(tfEndTime);
+		JLabel lEndTime = new JLabel("End Time:");
+		lEndTime.setBounds(317, 10 + 3*yShift, 100, 20);
+		pExpectations.add(lEndTime);
+		
+        tfAnalystName = new JTextField();
+        tfAnalystName.setBounds(362, 10 + 1*yShift, 228, 20);
+        tfAnalystName.setEditable(false);
+        tfAnalystName.setBackground(Color.WHITE);
+        pExpectations.add(tfAnalystName);
+		JLabel lAnalystName = new JLabel("Analyst:");
+		lAnalystName.setBounds(310, 10 + 1*yShift, 100, 20);
+		pExpectations.add(lAnalystName);
+        
+		tfEnvironment = new JTextField();
+        tfEnvironment.setBounds(90, 10 + 3*yShift, 200 , 20);
+        tfEnvironment.setEditable(false);
+        tfEnvironment.setBackground(Color.WHITE);
+        pExpectations.add(tfEnvironment);
+		JLabel lEnvironment = new JLabel("Environment:");
+		lEnvironment.setBounds(10, 10 +3*yShift, 100, 20);
+		pExpectations.add(lEnvironment);
+		
         
 		
 		JPanel pServer = new JPanel();
-		pServer.setBounds(299,69,301,131);
+		pServer.setBounds(-1,59,301,71);
 		pServer.setLayout(null);
 		pServer.setBorder(BorderFactory.createLineBorder(Color.BLACK));
     	errorViewPanel.add(pServer);
         
     	tfServerName = new JTextField();
-    	tfServerName.setBounds(100, 10, 180, 20);
+    	tfServerName.setBounds(93, 10, 197, 20);
     	tfServerName.setEditable(false);
     	tfServerName.setBackground(Color.WHITE);
     	pServer.add(tfServerName);
 		JLabel lServerName = new JLabel("Server Name:");
-		lServerName.setBounds(16, 10 , 100, 20);
+		lServerName.setBounds(10, 10 , 100, 20);
 		pServer.add(lServerName);
 		
         bServer = new JButton();
-        bServer.setBounds(20, 10 + 1*yShift , 260, 20);
+        bServer.setBounds(10, 10 + 1*yShift , 280, 20);
         bServer.setText("View Server");
         pServer.add(bServer);
     	bServer.addActionListener(new ActionListener() {
@@ -346,7 +434,7 @@ public class MainGUI extends JPanel
 			        	//Run Info Gather
 			                
 			            }}).start();}});
-        
+        /*
         bServerLog = new JButton();
         bServerLog.setBounds(20, 10 + 2*yShift  , 260, 20);
         bServerLog.setText("View Server Log");
@@ -370,7 +458,8 @@ public class MainGUI extends JPanel
 			        	//Run Info Gather
 			                
 			            }}).start();}});
-        
+        */
+    	/*
         JPanel pErrorInfo = new JPanel();
         pErrorInfo.setBounds(-1,199,601,301);
         pErrorInfo.setLayout(null);
@@ -388,7 +477,7 @@ public class MainGUI extends JPanel
     	tpErrorText.setEditable(false);
     	tpErrorText.setBackground(Color.WHITE);
     	pErrorInfo.add(tpErrorText);
-    	
+    	*/
     	JPanel pActions = new JPanel();
     	pActions.setBounds(599,-1,301,81);
     	pActions.setLayout(null);
@@ -451,6 +540,29 @@ public class MainGUI extends JPanel
 			                
 			            }}).start();}});
         
+    	
+    }
+    
+    private void selectExpectation(int expectNum)
+    {
+    	if(expectNum!=-1)
+    	{
+    		tfEnvironment.setText(getCurrentItem().getEnvironmentList().get(expectNum));
+        	tfExpectationID.setText(getCurrentItem().getExpectIDList().get(expectNum));
+        	tfExpectStatus.setText(getCurrentItem().getStatusList().get(expectNum));
+        	tfAnalystName.setText(getCurrentItem().getAnalystNameList().get(expectNum));
+        	tfStartTime.setText(getCurrentItem().getStartTimeList().get(expectNum));
+        	tfEndTime.setText(getCurrentItem().getEndTimeList().get(expectNum));
+    	}
+    	else
+    	{
+    		tfEnvironment.setText("n/a");
+        	tfExpectationID.setText("n/a");
+        	tfExpectStatus.setText("n/a");
+        	tfAnalystName.setText("n/a");
+        	tfStartTime.setText("n/a");
+        	tfEndTime.setText("n/a");
+    	}
     	
     }
     
@@ -659,7 +771,23 @@ public class MainGUI extends JPanel
         }
    }
     
-    
+   /*
+   final FocusListener fcsListener = new FocusListener() {
+
+        @Override
+        public void focusGained(FocusEvent e) {
+        	selectExpectation(cbExpectationSelect.getSelectedIndex());
+        }
+
+        @Override
+        public void focusLost(FocusEvent e) {
+        	selectExpectation(cbExpectationSelect.getSelectedIndex());
+        }
+        
+        
+        };
+
+*/
 
       
 }
