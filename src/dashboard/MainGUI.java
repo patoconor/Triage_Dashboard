@@ -239,7 +239,7 @@ public class MainGUI extends JPanel
 			        	int counter=1;
 			        	for (int i = getCurrentItem().getExpectNum()+1;i>1;i--)
 			        	{
-			        	getCurrentItem().addEnvironmentListItem(FIST.getEnvironment(i));
+			        	getCurrentItem().addEnvironmentListItem(getEnvironmentName(FIST.getEnvironment(i)));
 			        	getCurrentItem().addExpectIDListItem(FIST.getExpectID(i));
 			        	getCurrentItem().addStatusListItem(FIST.getExpectStatus(i));
 			        	getCurrentItem().addExpectDateListItem(counter+": "+FIST.getExpectDate(i));
@@ -262,12 +262,8 @@ public class MainGUI extends JPanel
 			        		selectExpectation(-1);
 			        	}
 			        	
-			        	/*
-			        	getCurrentItem().setAnalystName(FIST.getAnalyst());
-			        	tfAnalystName.setText(getCurrentItem().getAnalystName());
-			        	*/
 			        	
-			        	//FIST.driver.close();
+			        	FIST.driver.close();
 			        	bGatherInfo.setEnabled(true);
 			       
 			        	
@@ -564,6 +560,37 @@ public class MainGUI extends JPanel
         	tfEndTime.setText("n/a");
     	}
     	
+    }
+    
+    private String getEnvironmentName(String Enum)
+    {
+    	String displayName =Enum;
+    	
+    	if(Enum.contentEquals("B")){displayName= "B: Blue (Prod P)";}
+    	else if(Enum.contentEquals("C")){displayName= "C: Green (Prod P)";}
+    	else if(Enum.contentEquals("D")){displayName= "D: Yellow (Prod P)";}
+    	else if(Enum.contentEquals("F")){displayName= "F: Crimson (Prod P)";}
+    	else if(Enum.contentEquals("H")){displayName= "H: Silver (Prod P)";}
+    	else if(Enum.contentEquals("N")){displayName= "N: Gray (Prod P)";}
+    	else if(Enum.contentEquals("A")){displayName= "A: Indigo (Prod W)";}
+    	else if(Enum.contentEquals("E")){displayName= "E: Topaz (Prod W)";}
+    	else if(Enum.contentEquals("G")){displayName= "G: Navy (Prod W)";}
+    	else if(Enum.contentEquals("J")){displayName= "J: Cobalt (Prod W)";}
+    	else if(Enum.contentEquals("O")){displayName= "O: Red (Prod W)";}
+    	else if(Enum.contentEquals("R")){displayName= "R: Orange (Prod W)";}
+    	else if(Enum.contentEquals("K")){displayName= "K: White (Prod X)";}
+    	else if(Enum.contentEquals("V")){displayName= "V: Gold (Prod X)";}
+    	else if(Enum.contentEquals("S")){displayName= "S: Peach (Prod X)";}
+    	else if(Enum.contentEquals("Y")){displayName= "Y: Bronze (Prod X)";}
+    	else if(Enum.contentEquals("Z")){displayName= "Z: Plum (Prod X)";}
+    	else if(Enum.contentEquals("L")){displayName= "L: Brown (Prod X)";}
+    	else if(Enum.contentEquals("1")){displayName= "1: Cherry (Prod X)";}
+    	else if(Enum.contentEquals("6")){displayName= "6: Ruby (Prod X)";}
+    	else if(Enum.contentEquals("7")){displayName= "7: Emerald (Prod X)";}
+    	else if(Enum.contentEquals("8")){displayName= "8: Tan (Prod X)";}
+    	else if(Enum.contentEquals("9")){displayName= "9: Black (Prod X)";}
+    	
+    	return displayName;
     }
     
     private void populateErrorPanel () {
