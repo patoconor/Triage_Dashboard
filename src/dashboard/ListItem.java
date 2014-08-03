@@ -9,6 +9,11 @@ public class ListItem {
 	private String devName;
 	private String dateTime;
 	private String serviceLocation;
+	private String errorMessage;
+	private String server;
+	private String stackTrace;
+	private String service;
+	
 	
 	private int expectNum;
 	private ArrayList <String> expectDateList;
@@ -78,6 +83,45 @@ public class ListItem {
 
 	public void setServiceLocation(String serviceLocation) {
 		this.serviceLocation = serviceLocation;
+	}
+	
+	public String getStackTrace() {
+		return stackTrace;
+	}
+
+
+	public void setStackTrace(String stackTrace) {
+		this.stackTrace = stackTrace;
+	}
+
+
+	public String getServer() {
+		return server;
+	}
+
+
+	public void setServer(String server) {
+		this.server = server;
+	}
+
+
+	public String getErrorMessage() {
+		return errorMessage;
+	}
+
+
+	public void setErrorMessage(String errorMessage) {
+		this.errorMessage = errorMessage;
+	}
+	
+	
+	public String getService() {
+		return service;
+	}
+
+
+	public void setService(String service) {
+		this.service = service;
 	}
 
 
