@@ -2,6 +2,7 @@ package dashboard;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.font.TextAttribute;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -20,6 +21,8 @@ import java.util.*;
 public class MainGUI extends JPanel
                           implements ListSelectionListener {
 	private static Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+	
+	private static JFrame frame;
 	
 	private String sFistUser;
 	private String sFistPass;
@@ -47,6 +50,7 @@ public class MainGUI extends JPanel
     private JTextField tfServiceName;
     private JTextField tfDeveloperName;
     
+    
     private JTextField tfExpectationID;
     private JTextField tfEnvironment;
     private JTextField tfAnalystName;
@@ -58,6 +62,7 @@ public class MainGUI extends JPanel
     private JButton bServer;
     
     private JComboBox<String> cbExpectationSelect;
+    private JButton bViewExpectations;
     
     private JButton bServerLog;
     private JButton bErrorLog;
@@ -177,17 +182,17 @@ public class MainGUI extends JPanel
     
     public void setupList()
     {
-    	for (int i=0; i<20;i++)
-    	{
-    		int num = 63055+ (123*i);
-    		String s = ""+num;
-    		ListItem li= new ListItem(s);
-    		if (i>=10)
-    		{
-    			li.setFinished(true);
-    		}
-    		errorList.addElement(li);
-    	}
+    		ListItem li1= new ListItem("63055");
+    		errorList.addElement(li1);
+    		ListItem li2= new ListItem("62177");
+    		errorList.addElement(li2);
+    		// need to fix developer on this one 
+    		/*
+    		ListItem li3= new ListItem("28098");
+    		errorList.addElement(li3);
+    		*/
+    	
+    	
     }
     
     //Listens to the list
@@ -220,52 +225,47 @@ public class MainGUI extends JPanel
 			        public void run() {
 			        	//Run Info Gather
 			        	bGatherInfo.setEnabled(false);
-			            FIST.user=sFistUser;
-			            FIST.pass=sFistPass;
-			            FIST.startDriver(screenSize);
-			            
-			            
-			            FIST.loginProd();
-			        	getCurrentItem().setDevName(FIST.getDevName(getCurrentItem().getFileID()));
-			        	tfDeveloperName.setText(getCurrentItem().getDevName());
-			        	getCurrentItem().setServiceLocation(FIST.getLocation(getCurrentItem().getFileID()));
-			        	tfServiceName.setText(getCurrentItem().getServiceLocation());
+			        	int gatherItem = list.getSelectedIndex();
+			        	errorList.get(gatherItem).setGatheringInfo(true);
+			        	clearExpectations();
 			        	
-			        	FIST.loginConfig();
-			        	FIST.getExpectationsPage(getCurrentItem().getFileID(),"07/28/2014");
+			        	FIST Fdriver = new FIST(sFistUser,sFistPass,screenSize,true);
+			        	frame.requestFocus();
+			        	Fdriver.loginProd();
+			            errorList.get(gatherItem).setDevName(Fdriver.getDevName(errorList.get(gatherItem).getFileID()));
+			        	errorList.get(gatherItem).setServiceLocation(Fdriver.getLocation(errorList.get(gatherItem).getFileID()));
 			        	
-			        	getCurrentItem().setExpectNum(FIST.getNumberOfExpectations());
+			        	Fdriver.loginConfig();
+			        	Fdriver.getExpectationsPage(errorList.get(gatherItem).getFileID(),"07/28/2014");
+			        	
+			        	int iExpectNum=Fdriver.getNumberOfExpectations();
 			        	
 			        	int counter=1;
-			        	for (int i = getCurrentItem().getExpectNum()+1;i>1;i--)
+			        	for (int i = iExpectNum+1;i>1;i--)
 			        	{
-			        	getCurrentItem().addEnvironmentListItem(getEnvironmentName(FIST.getEnvironment(i)));
-			        	getCurrentItem().addExpectIDListItem(FIST.getExpectID(i));
-			        	getCurrentItem().addStatusListItem(FIST.getExpectStatus(i));
-			        	getCurrentItem().addExpectDateListItem(counter+": "+FIST.getExpectDate(i));
-			        	getCurrentItem().addStartTimeListItem(FIST.getStartTime(i));
-			        	getCurrentItem().addEndTimeListItem(FIST.getEndTime(i));
-			        	getCurrentItem().addAnalystNameListItem(FIST.getAnalyst(i));
+			        		errorList.get(gatherItem).addEnvironmentListItem(getEnvironmentName(Fdriver.getEnvironment(i)));
+			        		errorList.get(gatherItem).addExpectIDListItem(Fdriver.getExpectID(i));
+			        		errorList.get(gatherItem).addStatusListItem(Fdriver.getExpectStatus(i));
+			        		errorList.get(gatherItem).addExpectDateListItem(counter+": "+Fdriver.getExpectDate(i));
+			        		errorList.get(gatherItem).addStartTimeListItem(Fdriver.getStartTime(i));
+			        		errorList.get(gatherItem).addEndTimeListItem(Fdriver.getEndTime(i));
+			        		errorList.get(gatherItem).addAnalystNameListItem(Fdriver.getAnalyst(i));
 			        	counter++;
 			        	}
-			        	String[] DateArray = new String[getCurrentItem().getExpectDateList().size()];
-			        	DateArray = getCurrentItem().getExpectDateList().toArray(DateArray);
+			        	
+			        	errorList.get(gatherItem).setGatheringInfo(false);
+			        	errorList.get(gatherItem).setExpectNum(iExpectNum);
+			        	if(errorList.get(gatherItem).getExpectNum()>0)
+			        	{
+			        		errorList.get(gatherItem).setSelectedExpectNum(0);
+			        	}
 
-			        	cbExpectationSelect.setModel(new DefaultComboBoxModel<String>(DateArray));
-			        	
-			        	if(getCurrentItem().getExpectNum()>0)
+			        	if(gatherItem == list.getSelectedIndex())
 			        	{
-			        		selectExpectation(0);
-			        	}
-			        	else
-			        	{
-			        		selectExpectation(-1);
+				        	populateErrorPanel();
 			        	}
 			        	
-			        	
-			        	FIST.driver.close();
-			        	bGatherInfo.setEnabled(true);
-			       
+			        	Fdriver.closeDriver();
 			        	
 			            }}).start();}});
 		
@@ -342,11 +342,25 @@ public class MainGUI extends JPanel
 		
 		cbExpectationSelect.addActionListener(new ActionListener() {
 			  public void actionPerformed(ActionEvent evt) {			  
-				  
-				  selectExpectation(cbExpectationSelect.getSelectedIndex());
+				  getCurrentItem().setSelectedExpectNum(cbExpectationSelect.getSelectedIndex());
+				  selectExpectation();
 			  
 			  
 			  }});
+		
+		bViewExpectations = new JButton();
+		bViewExpectations.setBounds(362, 10, 228, 20);
+		bViewExpectations.setText("Open Expectations Page");
+		pExpectations.add(bViewExpectations);
+    	bViewExpectations.addActionListener(new ActionListener() {
+		  public void actionPerformed(ActionEvent evt) {			  
+			  new Thread(new Runnable() {
+			        public void run() {
+			        	FIST Fdriver = new FIST(sFistUser,sFistPass,screenSize,false);
+			        	Fdriver.loginConfig();
+			        	Fdriver.getExpectationsPage(getCurrentItem().getFileID(),"07/28/2014");
+			                
+			            }}).start();}});
 		
     	tfExpectationID = new JTextField();
         tfExpectationID.setBounds(100,10 + 1*yShift, 80, 20);
@@ -381,7 +395,7 @@ public class MainGUI extends JPanel
 		tfEndTime.setBackground(Color.WHITE);
         pExpectations.add(tfEndTime);
 		JLabel lEndTime = new JLabel("End Time:");
-		lEndTime.setBounds(317, 10 + 3*yShift, 100, 20);
+		lEndTime.setBounds(310, 10 + 3*yShift, 100, 20);
 		pExpectations.add(lEndTime);
 		
         tfAnalystName = new JTextField();
@@ -480,9 +494,19 @@ public class MainGUI extends JPanel
     	pActions.setBorder(BorderFactory.createLineBorder(Color.BLACK));
     	errorViewPanel.add(pActions);
     	
-    	JLabel lActionHeader = new JLabel("Reply in FIST:");
-    	lActionHeader.setBounds(114, 0 , 100, 20);
+    	JLabel lActionHeader = new JLabel("Reply to                                     expectation in FIST:");
+    	lActionHeader.setBounds(18, 0 , 300, 20);
     	pActions.add(lActionHeader);
+    	
+    	JLabel lActionHeader2 = new JLabel("currently selected");
+    	lActionHeader2.setBounds(67, 0 , 150, 20);
+    	pActions.add(lActionHeader2);
+    	Font font = lActionHeader2.getFont();
+    	Map attributes = font.getAttributes();
+    	attributes.put(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON);
+    	lActionHeader2.setFont(font.deriveFont(attributes));
+    	
+    	
     	
     	bLookingIntoIt = new JButton();
     	bLookingIntoIt.setBounds(20, 20 , 260, 20);
@@ -492,8 +516,13 @@ public class MainGUI extends JPanel
 		  public void actionPerformed(ActionEvent evt) {			  
 			  new Thread(new Runnable() {
 			        public void run() {
-			        	//Run Info Gather
-			                
+			        	if(getCurrentItem().getExpectNum()!=0)
+			        	{
+			        		FIST Fdriver = new FIST(sFistUser,sFistPass,screenSize,false);
+			        		Fdriver.loginConfig();
+			        		Fdriver.getExpectationsPage(getCurrentItem().getFileID(),"07/28/2014");
+			        		Fdriver.errorReply((getCurrentItem().getExpectNum() +(1 - cbExpectationSelect.getSelectedIndex())), true);
+			        	}
 			            }}).start();}});
         
         bReplyInFist = new JButton();
@@ -504,7 +533,13 @@ public class MainGUI extends JPanel
 		  public void actionPerformed(ActionEvent evt) {			  
 			  new Thread(new Runnable() {
 			        public void run() {
-			        	//Run Info Gather
+			        	if(getCurrentItem().getExpectNum()!=0)
+			        	{
+			        		FIST Fdriver = new FIST(sFistUser,sFistPass,screenSize,false);
+			        		Fdriver.loginConfig();
+			        		Fdriver.getExpectationsPage(getCurrentItem().getFileID(),"07/28/2014");
+			        		Fdriver.errorReply((getCurrentItem().getExpectNum() +(1 - cbExpectationSelect.getSelectedIndex())), true);
+			        	}
 			                
 			            }}).start();}});
         
@@ -539,18 +574,9 @@ public class MainGUI extends JPanel
     	
     }
     
-    private void selectExpectation(int expectNum)
+    private void selectExpectation()
     {
-    	if(expectNum!=-1)
-    	{
-    		tfEnvironment.setText(getCurrentItem().getEnvironmentList().get(expectNum));
-        	tfExpectationID.setText(getCurrentItem().getExpectIDList().get(expectNum));
-        	tfExpectStatus.setText(getCurrentItem().getStatusList().get(expectNum));
-        	tfAnalystName.setText(getCurrentItem().getAnalystNameList().get(expectNum));
-        	tfStartTime.setText(getCurrentItem().getStartTimeList().get(expectNum));
-        	tfEndTime.setText(getCurrentItem().getEndTimeList().get(expectNum));
-    	}
-    	else
+    	if(getCurrentItem().getExpectNum()==0)
     	{
     		tfEnvironment.setText("n/a");
         	tfExpectationID.setText("n/a");
@@ -559,7 +585,15 @@ public class MainGUI extends JPanel
         	tfStartTime.setText("n/a");
         	tfEndTime.setText("n/a");
     	}
-    	
+    	else
+    	{
+    		tfEnvironment.setText(getCurrentItem().getEnvironmentList().get(getCurrentItem().getSelectedExpectNum()));
+        	tfExpectationID.setText(getCurrentItem().getExpectIDList().get(getCurrentItem().getSelectedExpectNum()));
+        	tfExpectStatus.setText(getCurrentItem().getStatusList().get(getCurrentItem().getSelectedExpectNum()));
+        	tfAnalystName.setText(getCurrentItem().getAnalystNameList().get(getCurrentItem().getSelectedExpectNum()));
+        	tfStartTime.setText(getCurrentItem().getStartTimeList().get(getCurrentItem().getSelectedExpectNum()));
+        	tfEndTime.setText(getCurrentItem().getEndTimeList().get(getCurrentItem().getSelectedExpectNum()));
+    	}
     }
     
     private String getEnvironmentName(String Enum)
@@ -598,7 +632,28 @@ public class MainGUI extends JPanel
     	tfDeveloperName.setText(getCurrentItem().getDevName());
     	tfServiceName.setText(getCurrentItem().getServiceLocation());
     	tfServiceName.setCaretPosition(0);
+    	String[] DateArray = new String[getCurrentItem().getExpectDateList().size()];
+    	DateArray = getCurrentItem().getExpectDateList().toArray(DateArray);
+    	cbExpectationSelect.setModel(new DefaultComboBoxModel<String>(DateArray));
+    	if(getCurrentItem().isGatheringInfo()==false)
+    	{
+    		bGatherInfo.setEnabled(true);
+    	}
+    	else
+    	{
+    		bGatherInfo.setEnabled(false);
+    	}
     	
+    	if(getCurrentItem().getExpectNum()==0)
+    	{
+    		cbExpectationSelect.setEnabled(false);
+    	}
+    	else
+    	{
+    		cbExpectationSelect.setEnabled(true);
+        	cbExpectationSelect.setSelectedIndex(getCurrentItem().getSelectedExpectNum());
+    	}
+    	selectExpectation();
     }
     
 
@@ -747,7 +802,7 @@ public class MainGUI extends JPanel
     private static void createAndShowGUI() {
 
         //Create and set up the window.
-        JFrame frame = new JFrame("Triage Dashboard");
+        frame = new JFrame("Triage Dashboard");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         MainGUI window = new MainGUI();
         frame.getContentPane().add(window.getPane());
@@ -796,6 +851,17 @@ public class MainGUI extends JPanel
             }
             return this;
         }
+   }
+    
+   public void clearExpectations()
+   {
+	    getCurrentItem().getEnvironmentList().clear();
+	   	getCurrentItem().getExpectIDList().clear();
+	   	getCurrentItem().getStatusList().clear();
+	   	getCurrentItem().getExpectDateList().clear();
+	   	getCurrentItem().getStartTimeList().clear();
+	   	getCurrentItem().getEndTimeList().clear();
+	   	getCurrentItem().getAnalystNameList().clear();
    }
     
    /*

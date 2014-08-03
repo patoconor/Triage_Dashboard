@@ -5,6 +5,7 @@ import java.util.ArrayList;
 public class ListItem {
 
 	private boolean isFinished;
+	private boolean isGatheringInfo;
 	private String fileID;
 	private String devName;
 	private String dateTime;
@@ -16,6 +17,7 @@ public class ListItem {
 	
 	
 	private int expectNum;
+	private int selectedExpectNum;
 	private ArrayList <String> expectDateList;
 	private ArrayList <String> expectIDList;
 	private ArrayList <String> statusList;
@@ -31,8 +33,14 @@ public class ListItem {
 		devName="";
 		dateTime="";
 		serviceLocation="";
+		errorMessage="";
+		server="";
+		stackTrace="";
+		service="";
+		
 		
 		expectNum=0;
+		selectedExpectNum=-1;
 		expectIDList = new ArrayList <String> ();
 		statusList = new ArrayList <String> ();
 		analystNameList = new ArrayList <String> ();
@@ -202,6 +210,26 @@ public class ListItem {
 
 	public void addExpectDateListItem(String expectDate) {
 		this.expectDateList.add(expectDate);
+	}
+
+
+	public int getSelectedExpectNum() {
+		return selectedExpectNum;
+	}
+
+
+	public void setSelectedExpectNum(int selectedExpectNum) {
+		this.selectedExpectNum = selectedExpectNum;
+	}
+
+
+	public boolean isGatheringInfo() {
+		return isGatheringInfo;
+	}
+
+
+	public void setGatheringInfo(boolean isGatheringInfo) {
+		this.isGatheringInfo = isGatheringInfo;
 	}
 
 	
