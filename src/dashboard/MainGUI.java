@@ -186,11 +186,11 @@ public class MainGUI extends JPanel
     		errorList.addElement(li1);
     		ListItem li2= new ListItem("62177");
     		errorList.addElement(li2);
-    		// need to fix developer on this one 
-    		/*
-    		ListItem li3= new ListItem("28098");
+    		ListItem li3= new ListItem("63144");
     		errorList.addElement(li3);
-    		*/
+    		ListItem li4= new ListItem("28098");
+    		errorList.addElement(li4);
+    		
     	
     	
     }

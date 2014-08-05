@@ -91,9 +91,20 @@ public class FIST  {
         we = driver.findElement(By.cssSelector("input[name='find'"));
         we.click();
         
+        String sReturn= "No Developer Found";
+        if(driver.findElements(By.name("developerName")).size() != 0)
+        {
+        	we = new Select(driver.findElement(By.name("developerName"))).getFirstSelectedOption();
+        	sReturn = we.getText();
         
-        we = new Select(driver.findElement(By.name("developerName"))).getFirstSelectedOption();
-        return we.getText();
+        }
+        else
+        {
+        	we = driver.findElement((By.className("rowOdd")));
+            List<WebElement> rows = we.findElements(By.tagName("td"));
+            sReturn = rows.get(3).getText();
+        }
+        return sReturn;
         
 	}
 	public String getLocation(String fileID)
@@ -105,11 +116,20 @@ public class FIST  {
         we = driver.findElement(By.cssSelector("input[name='find'"));
         we.click();
         
+        String sReturn;
+        if(driver.findElements(By.className("rowOdd")).size() != 0)
+        {
+        	we = driver.findElement((By.className("rowOdd")));
+            List<WebElement> rows = we.findElements(By.tagName("td"));
+            sReturn = rows.get(1).getText();
+        }
+        else 
+        {
+        	sReturn = "No Location Found";
+        }
         
-        we = driver.findElement((By.className("rowOdd")));
-        List<WebElement> rows = we.findElements(By.tagName("td"));
       
-        return rows.get(1).getText();
+        return sReturn;
 	}
 	
 	public void getExpectationsPage(String fileID, String expectDate)
