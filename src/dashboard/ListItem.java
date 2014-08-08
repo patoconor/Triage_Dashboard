@@ -1,14 +1,22 @@
 package dashboard;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import com.google.common.base.Splitter;
+import com.google.common.collect.Lists;
 
 public class ListItem {
 
+	private String FullLine;
+	
 	private boolean isFinished;
 	private boolean isGatheringInfo;
 	private String fileID;
 	private String devName;
-	private String dateTime;
+	private String date;
+	private String time;
 	private String serviceLocation;
 	private String errorMessage;
 	private String server;
@@ -26,12 +34,15 @@ public class ListItem {
 	private ArrayList <String> startTimeList;
 	private ArrayList <String> endTimeList;
 	
-	public ListItem(String fileID)
+	public ListItem(String Line)
 	{
+		FullLine=Line;
+		
 		isFinished=false;
-		this.fileID=fileID;
+		this.fileID="";
 		devName="";
-		dateTime="";
+		date="";
+		time="";
 		serviceLocation="";
 		errorMessage="";
 		server="";
@@ -40,7 +51,7 @@ public class ListItem {
 		
 		
 		expectNum=0;
-		selectedExpectNum=-1;
+		selectedExpectNum=0;
 		expectIDList = new ArrayList <String> ();
 		statusList = new ArrayList <String> ();
 		analystNameList = new ArrayList <String> ();
@@ -48,8 +59,56 @@ public class ListItem {
 		expectDateList = new ArrayList <String> ();
 		startTimeList = new ArrayList <String> ();
 		endTimeList = new ArrayList <String> ();
+		
+		parseLineFromFile(getFullLine());
 	}
-
+	
+	
+	private void parseLineFromFile(String Line)
+	{
+		List<String> list = Lists.newArrayList(Splitter.on("|").split(Line));
+		
+		if(list.size()>10)
+		{
+		setFileID(list.get(0));
+		if(list.get(1)=="true"){setFinished(true);}
+		else{setFinished(false);}
+		
+		setDate(list.get(2));
+		setTime(list.get(3));
+		setServer(list.get(4));
+		setServiceLocation(list.get(5));
+		setDevName(list.get(6));
+		setErrorMessage(list.get(7));
+		setStackTrace(list.get(8));
+		setExpectNum(Integer.parseInt(list.get(9)));
+		}
+		int i = 10;
+		int expectNum=0;
+		while(!list.get(i).equals("ENDOFEXPECTATIONS"))
+		{
+			if(list.get(i).equals("STARTEXPECTATION"))
+			{
+				i++;
+				addExpectIDListItem(list.get(i));
+				i++;
+				addStatusListItem(list.get(i));
+				i++;
+				addAnalystNameListItem(list.get(i));
+				i++;
+				addEnvironmentListItem(list.get(i));
+				i++;
+				addExpectDateListItem(list.get(i));
+				i++;
+				addStartTimeListItem(list.get(i));
+				i++;
+				addEndTimeListItem(list.get(i));
+			}
+			i++;	
+			expectNum++;
+		}
+		
+	}
 	
 	public String getFileID() {
 		return fileID;
@@ -57,14 +116,6 @@ public class ListItem {
 
 	public void setFileID(String fileID) {
 		this.fileID = fileID;
-	}
-
-	public String getDateTime() {
-		return dateTime;
-	}
-
-	public void setDateTime(String dateTime) {
-		this.dateTime = dateTime;
 	}
 
 	public boolean isFinished() {
@@ -230,6 +281,36 @@ public class ListItem {
 
 	public void setGatheringInfo(boolean isGatheringInfo) {
 		this.isGatheringInfo = isGatheringInfo;
+	}
+
+
+	public String getFullLine() {
+		return FullLine;
+	}
+
+
+	public void setFullLine(String fullLine) {
+		FullLine = fullLine;
+	}
+
+
+	public String getDate() {
+		return date;
+	}
+
+
+	public void setDate(String date) {
+		this.date = date;
+	}
+
+
+	public String getTime() {
+		return time;
+	}
+
+
+	public void setTime(String time) {
+		this.time = time;
 	}
 
 	

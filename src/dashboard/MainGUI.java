@@ -16,8 +16,9 @@ import javax.swing.event.*;
 
 
 import java.util.*;
+
+
 //Test Commit
-//SplitPaneDemo itself is not a visible component.
 public class MainGUI extends JPanel
                           implements ListSelectionListener {
 	private static Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
@@ -28,6 +29,7 @@ public class MainGUI extends JPanel
 	private String sFistPass;
 	private String sServerUser;
 	private String sServerPass;
+	private String sOfficeLocation;
 	
 	
 	private JSplitPane splitPane;
@@ -59,13 +61,11 @@ public class MainGUI extends JPanel
     private JTextField tfEndTime;
    
     private JTextField tfServerName;
+    private JComboBox<String> cbServerLocationSelect;
     private JButton bServer;
     
     private JComboBox<String> cbExpectationSelect;
     private JButton bViewExpectations;
-    
-    private JButton bServerLog;
-    private JButton bErrorLog;
     
     private JTextPane tpErrorText;
     
@@ -76,8 +76,8 @@ public class MainGUI extends JPanel
     
     
     private JDialog dCred;
-    String[] textData= new String[4];
-    
+    String[] textData= new String[5];
+        
     
     
     public MainGUI() {
@@ -86,7 +86,10 @@ public class MainGUI extends JPanel
     	
     	//list of errors in left pane
     	errorList= new DefaultListModel<>();
+    	if(new File("C://Triage_Dashboard//ActiveErrors.txt").isFile()==true)
+    	{
     	setupList();
+    	}
         list = new JList<>(errorList);
         list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         list.setSelectedIndex(0);
@@ -96,7 +99,7 @@ public class MainGUI extends JPanel
         //right panel for viewing error details
         errorViewPanel = new JPanel();
         errorViewPanel.setLayout(null);
-        errorViewPanel.setPreferredSize(new Dimension(900,500));
+        errorViewPanel.setPreferredSize(new Dimension(899, 559));
         
         //bottom panel for credentials and options
         pCredentials = new JPanel();
@@ -110,7 +113,7 @@ public class MainGUI extends JPanel
 		  public void actionPerformed(ActionEvent evt) {			  
 			  new Thread(new Runnable() {
 			        public void run() {
-			        	//Run
+			        	setupList();
 			                
 			            }}).start();}});
         
@@ -153,7 +156,7 @@ public class MainGUI extends JPanel
         //Create a vertically split pane with the two scroll panes in it.
         splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,	errorListScroll, errorViewScroll);
         splitPane.setOneTouchExpandable(true);
-        splitPane.setDividerLocation(screenSize.width/20);
+        splitPane.setDividerLocation(190);
         //splitPane.setMinimumSize(new Dimension(1*screenSize.width/6, 1*screenSize.height/6));
 
         //create a horizontally split pane for the credentials and options
@@ -163,7 +166,7 @@ public class MainGUI extends JPanel
         splitPaneBottom.setResizeWeight(1);
     
         //Provide a preferred size for the split pane.
-        splitPane.setPreferredSize(new Dimension(990, 2*screenSize.height/3));
+        splitPane.setPreferredSize(new Dimension(1103, 564));
         
         
 	    credCheck();
@@ -172,6 +175,7 @@ public class MainGUI extends JPanel
 				sFistPass = Encrypt.symmetricDecrypt(textData[1]);
 				sServerUser = Encrypt.symmetricDecrypt(textData[2]);
 				sServerPass = Encrypt.symmetricDecrypt(textData[3]);
+				sOfficeLocation = Encrypt.symmetricDecrypt(textData[4]);
 		  }
 	       
         
@@ -182,17 +186,29 @@ public class MainGUI extends JPanel
     
     public void setupList()
     {
-    		ListItem li1= new ListItem("63055");
-    		errorList.addElement(li1);
-    		ListItem li2= new ListItem("62177");
-    		errorList.addElement(li2);
-    		ListItem li3= new ListItem("63144");
-    		errorList.addElement(li3);
-    		ListItem li4= new ListItem("28098");
-    		errorList.addElement(li4);
-    		
     	
+    	/*
+    	ListItem li = new ListItem("");
+    	li.setFileID("63001");
+    	errorList.addElement(li);
+    	*/
     	
+    	BufferedReader br;
+    	String line;
+		try {
+			br = new BufferedReader(new FileReader("C://Triage_Dashboard//ActiveErrors.txt"));
+			while((line =br.readLine())!=null && line.length()!=0)
+			{
+				errorList.addElement(new ListItem(line));
+			}
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		  	
     }
     
     //Listens to the list
@@ -224,12 +240,14 @@ public class MainGUI extends JPanel
 			  new Thread(new Runnable() {
 			        public void run() {
 			        	//Run Info Gather
+			        	//ErrorLine el = new ErrorLine(sFistUser,sFistPass,getCurrentItem().getFileID(),"08/05/2014","04:29:45","l4dwipap057","Error Message", "Stack");
+			        	/*
 			        	bGatherInfo.setEnabled(false);
 			        	int gatherItem = list.getSelectedIndex();
 			        	errorList.get(gatherItem).setGatheringInfo(true);
 			        	clearExpectations();
 			        	
-			        	FIST Fdriver = new FIST(sFistUser,sFistPass,screenSize,true);
+			        	FIST Fdriver = new FIST(sFistUser,sFistPass,true);
 			        	frame.requestFocus();
 			        	Fdriver.loginProd();
 			            errorList.get(gatherItem).setDevName(Fdriver.getDevName(errorList.get(gatherItem).getFileID()));
@@ -266,7 +284,7 @@ public class MainGUI extends JPanel
 			        	}
 			        	
 			        	Fdriver.closeDriver();
-			        	
+			        	*/
 			            }}).start();}});
 		
     	
@@ -327,11 +345,6 @@ public class MainGUI extends JPanel
 		pExpectations.setBorder(BorderFactory.createLineBorder(Color.BLACK));
     	errorViewPanel.add(pExpectations);
     	
-    	/*
-    	JLabel lExpectationHeader = new JLabel("Expectation Information:");
-    	lExpectationHeader.setBounds(232, 0, 200, 20);
-		pExpectations.add(lExpectationHeader);
-		*/
 		
 		cbExpectationSelect = new JComboBox <String> ();
 		cbExpectationSelect.setBounds(115, 10, 174, 20);
@@ -356,7 +369,7 @@ public class MainGUI extends JPanel
 		  public void actionPerformed(ActionEvent evt) {			  
 			  new Thread(new Runnable() {
 			        public void run() {
-			        	FIST Fdriver = new FIST(sFistUser,sFistPass,screenSize,false);
+			        	FIST Fdriver = new FIST(sFistUser,sFistPass,sOfficeLocation,false);
 			        	Fdriver.loginConfig();
 			        	Fdriver.getExpectationsPage(getCurrentItem().getFileID(),"07/28/2014");
 			                
@@ -433,45 +446,32 @@ public class MainGUI extends JPanel
 		lServerName.setBounds(10, 10 , 100, 20);
 		pServer.add(lServerName);
 		
+		
+		cbServerLocationSelect = new JComboBox <String> ();
+		cbServerLocationSelect.setBounds(10, 10 + 1*yShift , 150, 20);
+		pServer.add(cbServerLocationSelect);
+		String [] serverStrings = {"View Server","View Server Log","View Error Log"};
+		cbServerLocationSelect.setModel(new DefaultComboBoxModel<String>(serverStrings));
+		
+		
+		
         bServer = new JButton();
-        bServer.setBounds(10, 10 + 1*yShift , 280, 20);
-        bServer.setText("View Server");
+        bServer.setBounds(170, 10 + 1*yShift , 110, 20);
+        bServer.setText("View");
         pServer.add(bServer);
     	bServer.addActionListener(new ActionListener() {
 		  public void actionPerformed(ActionEvent evt) {			  
 			  new Thread(new Runnable() {
 			        public void run() {
-			        	//Run Info Gather
-			                
-			            }}).start();}});
-        /*
-        bServerLog = new JButton();
-        bServerLog.setBounds(20, 10 + 2*yShift  , 260, 20);
-        bServerLog.setText("View Server Log");
-        pServer.add(bServerLog);
-        bServerLog.addActionListener(new ActionListener() {
-		  public void actionPerformed(ActionEvent evt) {			  
-			  new Thread(new Runnable() {
-			        public void run() {
-			        	//Run Info Gather
-			                
+			        	Server.user=sServerUser;
+			        	Server.pw=sServerPass;			        	
+			        	Server.serverLogin(getCurrentItem().getServer(),cbServerLocationSelect.getSelectedIndex());
+			        	
 			            }}).start();}});
         
-        bErrorLog = new JButton();
-        bErrorLog.setBounds(20, 10 + 3*yShift , 260, 20);
-        bErrorLog.setText("View Error Log");
-        pServer.add(bErrorLog);
-        bErrorLog.addActionListener(new ActionListener() {
-		  public void actionPerformed(ActionEvent evt) {			  
-			  new Thread(new Runnable() {
-			        public void run() {
-			        	//Run Info Gather
-			                
-			            }}).start();}});
-        */
-    	/*
+    	
         JPanel pErrorInfo = new JPanel();
-        pErrorInfo.setBounds(-1,199,601,301);
+        pErrorInfo.setBounds(-1,259,601,301);
         pErrorInfo.setLayout(null);
         pErrorInfo.setBorder(BorderFactory.createLineBorder(Color.BLACK));
     	errorViewPanel.add(pErrorInfo);
@@ -487,7 +487,8 @@ public class MainGUI extends JPanel
     	tpErrorText.setEditable(false);
     	tpErrorText.setBackground(Color.WHITE);
     	pErrorInfo.add(tpErrorText);
-    	*/
+    	
+    	
     	JPanel pActions = new JPanel();
     	pActions.setBounds(599,-1,301,81);
     	pActions.setLayout(null);
@@ -518,10 +519,10 @@ public class MainGUI extends JPanel
 			        public void run() {
 			        	if(getCurrentItem().getExpectNum()!=0)
 			        	{
-			        		FIST Fdriver = new FIST(sFistUser,sFistPass,screenSize,false);
+			        		FIST Fdriver = new FIST(sFistUser,sFistPass,sOfficeLocation,false);
 			        		Fdriver.loginConfig();
-			        		Fdriver.getExpectationsPage(getCurrentItem().getFileID(),"07/28/2014");
-			        		Fdriver.errorReply((getCurrentItem().getExpectNum() +(1 - cbExpectationSelect.getSelectedIndex())), true);
+			        		Fdriver.getExpectationsPage(getCurrentItem().getFileID(),getCurrentItem().getDate());
+			        		Fdriver.errorReply((getCurrentItem().getExpectNum() +(1 - cbExpectationSelect.getSelectedIndex())), getCurrentItem().getFileID(), true);
 			        	}
 			            }}).start();}});
         
@@ -535,10 +536,10 @@ public class MainGUI extends JPanel
 			        public void run() {
 			        	if(getCurrentItem().getExpectNum()!=0)
 			        	{
-			        		FIST Fdriver = new FIST(sFistUser,sFistPass,screenSize,false);
+			        		FIST Fdriver = new FIST(sFistUser,sFistPass,sOfficeLocation,false);
 			        		Fdriver.loginConfig();
-			        		Fdriver.getExpectationsPage(getCurrentItem().getFileID(),"07/28/2014");
-			        		Fdriver.errorReply((getCurrentItem().getExpectNum() +(1 - cbExpectationSelect.getSelectedIndex())), true);
+			        		Fdriver.getExpectationsPage(getCurrentItem().getFileID(),getCurrentItem().getDate());
+			        		Fdriver.errorReply((getCurrentItem().getExpectNum() +(1 - cbExpectationSelect.getSelectedIndex())), getCurrentItem().getFileID(), true);
 			        	}
 			                
 			            }}).start();}});
@@ -590,48 +591,24 @@ public class MainGUI extends JPanel
     		tfEnvironment.setText(getCurrentItem().getEnvironmentList().get(getCurrentItem().getSelectedExpectNum()));
         	tfExpectationID.setText(getCurrentItem().getExpectIDList().get(getCurrentItem().getSelectedExpectNum()));
         	tfExpectStatus.setText(getCurrentItem().getStatusList().get(getCurrentItem().getSelectedExpectNum()));
+        	tfExpectStatus.setCaretPosition(0);
         	tfAnalystName.setText(getCurrentItem().getAnalystNameList().get(getCurrentItem().getSelectedExpectNum()));
+        	tfAnalystName.setCaretPosition(0);
         	tfStartTime.setText(getCurrentItem().getStartTimeList().get(getCurrentItem().getSelectedExpectNum()));
         	tfEndTime.setText(getCurrentItem().getEndTimeList().get(getCurrentItem().getSelectedExpectNum()));
     	}
     }
     
-    private String getEnvironmentName(String Enum)
-    {
-    	String displayName =Enum;
-    	
-    	if(Enum.contentEquals("B")){displayName= "B: Blue (Prod P)";}
-    	else if(Enum.contentEquals("C")){displayName= "C: Green (Prod P)";}
-    	else if(Enum.contentEquals("D")){displayName= "D: Yellow (Prod P)";}
-    	else if(Enum.contentEquals("F")){displayName= "F: Crimson (Prod P)";}
-    	else if(Enum.contentEquals("H")){displayName= "H: Silver (Prod P)";}
-    	else if(Enum.contentEquals("N")){displayName= "N: Gray (Prod P)";}
-    	else if(Enum.contentEquals("A")){displayName= "A: Indigo (Prod W)";}
-    	else if(Enum.contentEquals("E")){displayName= "E: Topaz (Prod W)";}
-    	else if(Enum.contentEquals("G")){displayName= "G: Navy (Prod W)";}
-    	else if(Enum.contentEquals("J")){displayName= "J: Cobalt (Prod W)";}
-    	else if(Enum.contentEquals("O")){displayName= "O: Red (Prod W)";}
-    	else if(Enum.contentEquals("R")){displayName= "R: Orange (Prod W)";}
-    	else if(Enum.contentEquals("K")){displayName= "K: White (Prod X)";}
-    	else if(Enum.contentEquals("V")){displayName= "V: Gold (Prod X)";}
-    	else if(Enum.contentEquals("S")){displayName= "S: Peach (Prod X)";}
-    	else if(Enum.contentEquals("Y")){displayName= "Y: Bronze (Prod X)";}
-    	else if(Enum.contentEquals("Z")){displayName= "Z: Plum (Prod X)";}
-    	else if(Enum.contentEquals("L")){displayName= "L: Brown (Prod X)";}
-    	else if(Enum.contentEquals("1")){displayName= "1: Cherry (Prod X)";}
-    	else if(Enum.contentEquals("6")){displayName= "6: Ruby (Prod X)";}
-    	else if(Enum.contentEquals("7")){displayName= "7: Emerald (Prod X)";}
-    	else if(Enum.contentEquals("8")){displayName= "8: Tan (Prod X)";}
-    	else if(Enum.contentEquals("9")){displayName= "9: Black (Prod X)";}
-    	
-    	return displayName;
-    }
+   
     
     private void populateErrorPanel () {
     	tfFileID.setText(getCurrentItem().getFileID());
     	tfDeveloperName.setText(getCurrentItem().getDevName());
+    	tfDeveloperName.setCaretPosition(0);
     	tfServiceName.setText(getCurrentItem().getServiceLocation());
     	tfServiceName.setCaretPosition(0);
+    	tfFailTime.setText(getCurrentItem().getDate() + "  |  " + getCurrentItem().getTime());
+    	tfServerName.setText(getCurrentItem().getServer());
     	String[] DateArray = new String[getCurrentItem().getExpectDateList().size()];
     	DateArray = getCurrentItem().getExpectDateList().toArray(DateArray);
     	cbExpectationSelect.setModel(new DefaultComboBoxModel<String>(DateArray));
@@ -647,13 +624,20 @@ public class MainGUI extends JPanel
     	if(getCurrentItem().getExpectNum()==0)
     	{
     		cbExpectationSelect.setEnabled(false);
+    		bLookingIntoIt.setEnabled(false);
+    		bReplyInFist.setEnabled(false);
     	}
     	else
     	{
     		cbExpectationSelect.setEnabled(true);
+    		bLookingIntoIt.setEnabled(true);
+    		bReplyInFist.setEnabled(true);
         	cbExpectationSelect.setSelectedIndex(getCurrentItem().getSelectedExpectNum());
     	}
     	selectExpectation();
+    	
+    	tpErrorText.setText(getCurrentItem().getErrorMessage()+"\n\n"+getCurrentItem().getStackTrace());
+    	
     }
     
 
@@ -685,7 +669,7 @@ public class MainGUI extends JPanel
             }
         });
     	dCred.setTitle("Enter your credentials");
-    	dCred.setBounds((screenSize.width/2)-120,(screenSize.height/2)-125,240, 250);
+    	dCred.setBounds((screenSize.width/2)-120,(screenSize.height/2)-145,240, 290);
     	dCred.setLayout(null);
 
     	
@@ -696,29 +680,55 @@ public class MainGUI extends JPanel
         lFistPass.setBounds(10, 10 + 2*yShift, 200, 20);
         final JTextField tfFistUser=new JTextField(10);
         tfFistUser.setBounds(10, 10 + yShift, 200, 20);
+        tfFistUser.setText(sFistUser);
         final JPasswordField pfFistPass=new JPasswordField(10);
         pfFistPass.setBounds(10, 10 + 3*yShift, 200, 20);
+        pfFistPass.setText(sFistPass);
         JLabel lServerUser=new JLabel("Servers Username:");
         lServerUser.setBounds(10, 10 + 4*yShift, 200, 20);
         JLabel lServerPass=new JLabel("Servers Password:");
         lServerPass.setBounds(10, 10 + 6*yShift, 200, 20);
         final JTextField tfServerUser=new JTextField(10);
         tfServerUser.setBounds(10, 10 + 5*yShift, 200, 20);
+        tfServerUser.setText(sServerUser);
         final JPasswordField pfServerPass=new JPasswordField(10);
         pfServerPass.setBounds(10, 10 + 7*yShift, 200, 20);
+        pfServerPass.setText(sServerPass);
+        JLabel lOffice=new JLabel("Select Your Office Location:");
+        lOffice.setBounds(10, 10 + 8*yShift, 200, 20);
+        final JComboBox<String> cbOffice=new JComboBox<String>();
+        cbOffice.setBounds(10, 10 + 9*yShift, 200, 20);
+        String [] officeStrings = {"Winston Salem","Hunt Valley"};
+        cbOffice.setModel(new DefaultComboBoxModel<String>(officeStrings));
+        if(sOfficeLocation.equals("Winston Salem"))
+        {
+        	cbOffice.setSelectedIndex(0);
+        }
+        else if (sOfficeLocation.equals("Hunt Valley"))
+        {
+        	cbOffice.setSelectedIndex(1);
+        }
         JButton bSave = new JButton("Save");
-        bSave.setBounds(10, 20 + 8*yShift, 200, 20);
+        bSave.setBounds(10, 20 + 10*yShift, 200, 20);
         bSave.addActionListener(new ActionListener() {
 		  public void actionPerformed(ActionEvent evt) {			  
 			  new Thread(new Runnable() {
 			        public void run() {
 			        	
-			        	String sFistUser = tfFistUser.getText();
-			    		String sFistPass = new String(pfFistPass.getPassword());
-			    		String sServerUser = tfServerUser.getText();
-			    		String sServerPass = new String(pfServerPass.getPassword());
-			    		
-			    		if(sFistUser.contentEquals("")||sFistPass.contentEquals("")||sServerUser.contentEquals("")||sServerPass.contentEquals("")){
+			        	String FistUser = tfFistUser.getText();
+			    		String FistPass = new String(pfFistPass.getPassword());
+			    		String ServerUser = tfServerUser.getText();
+			    		String ServerPass = new String(pfServerPass.getPassword());
+			    		String Office = "";
+			    		if(cbOffice.getSelectedIndex()==0)
+			    		{
+			    			Office = "Winston Salem";
+			    		}
+			    		else
+			    		{
+			    			Office = "Hunt Valley";
+			    		}
+			    		if(FistUser.contentEquals("")||FistPass.contentEquals("")||ServerUser.contentEquals("")||ServerPass.contentEquals("")){
 			    			JOptionPane.showMessageDialog(null,"All fields are required");
 			    		}
 			    		else
@@ -738,15 +748,22 @@ public class MainGUI extends JPanel
 			    			}
 			    			
 			    			//Use encrypt class to hide username and PW
-			    			sFistUser = Encrypt.symmetricEncrypt(sFistUser);
-			    			sFistPass = Encrypt.symmetricEncrypt(sFistPass);
-			    			sServerUser = Encrypt.symmetricEncrypt(sServerUser);
-			    			sServerPass = Encrypt.symmetricEncrypt(sServerPass);
+			    			sFistUser=FistUser;
+			    			sFistPass=FistPass;
+			    			sServerUser=ServerUser;
+			    			sServerPass=ServerPass;
+			    			sOfficeLocation=Office;
+			    			FistUser = Encrypt.symmetricEncrypt(FistUser);
+			    			FistPass = Encrypt.symmetricEncrypt(FistPass);
+			    			ServerUser = Encrypt.symmetricEncrypt(ServerUser);
+			    			ServerPass = Encrypt.symmetricEncrypt(ServerPass);
+			    			Office = Encrypt.symmetricEncrypt(Office);
 			    			//Write to credentials file
-			    			writer.println(sFistUser);
-			    			writer.println(sFistPass);
-			    			writer.println(sServerUser);
-			    			writer.println(sServerPass);
+			    			writer.println(FistUser);
+			    			writer.println(FistPass);
+			    			writer.println(ServerUser);
+			    			writer.println(ServerPass);
+			    			writer.println(Office);
 			    			writer.close();
 			    			dCred.dispose();
 			    		}
@@ -761,6 +778,9 @@ public class MainGUI extends JPanel
         dCred.add(tfServerUser);
         dCred.add(lServerPass);
         dCred.add(pfServerPass);
+        dCred.add(lOffice);
+        dCred.add(cbOffice);
+        
         dCred.add(bSave);
         
         
@@ -776,7 +796,7 @@ public class MainGUI extends JPanel
     	{
 			try{
 				br = new BufferedReader(new FileReader("C://Triage_Dashboard//credentials.txt"));
-				for(int i=0; i<4; i++){
+				for(int i=0; i<5; i++){
 					
 					textData[i]=br.readLine();
 				}
@@ -786,7 +806,7 @@ public class MainGUI extends JPanel
 				e.printStackTrace();
 			}
 			
-			if(textData[0]==null || textData[0].contentEquals("") || textData[1]==null || textData[1].contentEquals("") || textData[2]==null || textData[2].contentEquals("") || textData[3]==null || textData[3].contentEquals("")){
+			if(textData[0]==null || textData[0].contentEquals("") || textData[1]==null || textData[1].contentEquals("") || textData[2]==null || textData[2].contentEquals("") || textData[3]==null || textData[3].contentEquals("") || textData[4]==null || textData[4].contentEquals("")){
 				new File("C://Traige_Dashboard//credentials.txt").delete();
 				setupLoginPanel();
 			}
@@ -831,7 +851,7 @@ public class MainGUI extends JPanel
         public Component getListCellRendererComponent(JList<? extends ListItem> list, ListItem item, int index, boolean isSelected, boolean cellHasFocus) {
         	setOpaque(true);
         	
-            setText(item.getFileID());
+            setText(item.getFileID() + " | " +item.getTime() + " | " + item.getDate());
             if(item.isFinished())
             {
             	setBackground(new Color(Integer.parseInt( "ABEDA8",16)));

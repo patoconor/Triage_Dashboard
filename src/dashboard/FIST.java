@@ -1,6 +1,7 @@
 package dashboard;
 
 import java.awt.Dimension;
+import java.awt.Toolkit;
 import java.util.Arrays;
 import java.util.List;
 
@@ -22,11 +23,22 @@ public class FIST  {
 	private String user;
 	private String pass;
 	private WebElement we;
+	private String URLstart;
+	Dimension screenSize;
 	
-	FIST (String username, String password,Dimension screenSize, boolean isHidden)
+	FIST (String username, String password, String officeLocation, boolean isHidden)
 	{
+		screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 		user=username;
 		pass=password;
+		if(officeLocation.equals("Winston Salem"))
+		{
+			URLstart="https://gray.cbauat.com/";
+		}
+		else if(officeLocation.equals("Hunt Valley"))
+		{
+			URLstart="https://cbagray.hewitt.com/";
+		}
 		
 		System.setProperty("webdriver.chrome.driver", "C://schema_creation/chromedriver.exe");
 		
@@ -74,7 +86,7 @@ public class FIST  {
 	}
 	
 	public void loginConfig(){
-		driver.get("https://gray.cbauat.com/safe/");
+		driver.get(URLstart+ "safe/");
 		we = driver.findElement(By.name("username"));
         we.sendKeys(user);
         we = driver.findElement(By.name("password"));
@@ -134,7 +146,7 @@ public class FIST  {
 	
 	public void getExpectationsPage(String fileID, String expectDate)
 	{
-		driver.get("https://gray.cbauat.com/fist/wicket/bookmarkable/com.aonhewitt.fist.page.SearchExpectations?1");
+		driver.get(URLstart+"fist/wicket/bookmarkable/com.aonhewitt.fist.page.SearchExpectations?1");
 		
 		we = driver.findElement(By.cssSelector("input[name='beginDate'"));
 		we.clear();
@@ -193,8 +205,22 @@ public class FIST  {
 		//must call getExpectationsPage first
 		String xpathStart = "//form[@name='expectationsform']/table/tbody/tr[2]/td/table/tbody/tr/td/table/tbody/tr[4]/td/table/tbody/tr/td/table/tbody/tr[";
 		String xpathEnd = "]/td[5]/input";
+		
+		
+		
 		we = driver.findElement(By.xpath(xpathStart + num + xpathEnd));
-		return we.getAttribute("value");
+		if(driver.findElement(By.xpath(xpathStart + num + "]")).getAttribute("class").equals("rowFail"))
+		{
+			return (we.getAttribute("value") + "   ERROR");
+		}
+		else if(driver.findElement(By.xpath(xpathStart + num + "]")).getAttribute("class").equals("rowPaused"))
+		{
+			return (we.getAttribute("value") + "   PAUSED");
+		}
+		else
+		{
+			return we.getAttribute("value");
+		}
 	}
 	
 	public String getStartTime(int num)
@@ -236,7 +262,7 @@ public class FIST  {
 				return sName;
 	}
 	
-	public void errorReply(int expectNum, boolean lookingIntoItReply)
+	public void errorReply(int expectNum, String fileID, boolean lookingIntoItReply)
 	{
 		//must call getExpectationsPage first
 				String xpathStart ="//form[@name='expectationsform']/table/tbody/tr[2]/td/table/tbody/tr/td/table/tbody/tr[4]/td/table/tbody/tr/td/table/tbody/tr[";
@@ -245,11 +271,28 @@ public class FIST  {
 				we = driver.findElement(By.xpath(xpathStart + expectNum + xpathEnd));
 				we.click();
 				
-				WebDriverWait wait = new WebDriverWait(driver, 10);
-
-				//wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//html/body/table[2]/tbody/tr/td/table/tbody/tr/td[3]/table/tbody/tr/td/div/div/table/tbody/tr[3]/td/form/table[3]/tbody/tr/td/table/tbody/tr[2]/td[4]/span")));
+				WebDriverWait wait = new WebDriverWait(driver, 5);
+				wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("id46")));
 				
-				//we=driver.findElement(By.xpath("//html/body/table[2]/tbody/tr/td/table/tbody/tr/td[3]/table/tbody/tr/td/div/div/table/tbody/tr[3]/td/form/table[3]/tbody/tr/td/table/tbody/tr[2]/td[4]/span"));
+				
+				if(driver.findElements(By.partialLinkText(fileID)).size() != 0)
+		        {
+		        	we = driver.findElement(By.partialLinkText(fileID));
+		        	we.click();
+		        	we = driver.findElement(By.name("selectedReply"));
+		        	we.click();
+		        	if(lookingIntoItReply==true)
+		        	{
+		        	we.sendKeys("Looking into it...");
+		        	}
+		        	
+		        	
+		        }
+				else
+				{
+					driver.close();
+					//Add error message display!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+				}
 	}
 	
 }

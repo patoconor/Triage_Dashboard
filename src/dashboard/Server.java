@@ -11,8 +11,27 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 
 public class Server {
-	String user;
-	String pw;
+	static String user;
+	static String pw;
+	
+	static public void serverLogin(String serverName,int serverSelect)
+	{
+		System.setProperty("webdriver.chrome.driver", "C://schema_creation/chromedriver.exe");
+        WebDriver driver = new ChromeDriver();
+        if(serverSelect==0)
+        {
+		driver.get("https://" + user + ":" + pw + "@" + serverName + ".hewitt.com/");
+        }
+        else if (serverSelect==1)
+        {
+        	driver.get("https://" + user + ":" + pw + "@" + serverName + ".hewitt.com/WmRoot/log-server-recent.dsp");
+        }
+        else if(serverSelect==2)
+        {
+        	driver.get("https://" + user + ":" + pw + "@" + serverName + ".hewitt.com/WmRoot/log-error-recent.dsp");
+        }
+	}	
+	
 	public void CreateServerLogs() throws FileNotFoundException, UnsupportedEncodingException{
 		System.setProperty("webdriver.chrome.driver", "C://schema_creation/chromedriver.exe");
         WebDriver driver = new ChromeDriver();
