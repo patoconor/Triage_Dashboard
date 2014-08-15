@@ -170,7 +170,7 @@ public class MainGUI extends JPanel
         
         
 	    credCheck();
-	    if(new File("C://schema_creation//LoginCredentials.txt").isFile()==true){
+	    if(new File("C://Triage_Dashboard//credentials.txt").isFile()==true){
 			  	sFistUser = Encrypt.symmetricDecrypt(textData[0]);
 				sFistPass = Encrypt.symmetricDecrypt(textData[1]);
 				sServerUser = Encrypt.symmetricDecrypt(textData[2]);
@@ -196,10 +196,37 @@ public class MainGUI extends JPanel
     	BufferedReader br;
     	String line;
 		try {
-			br = new BufferedReader(new FileReader("C://Triage_Dashboard//ActiveErrors.txt"));
+			br = new BufferedReader(new FileReader("T://Triage_Dashboard//ActiveErrors.txt"));
+			ArrayList <Boolean> foundItems = new ArrayList<Boolean> ();
+			for(int i=0; i<errorList.getSize();i++)
+			{
+				foundItems.add(false);
+			}
 			while((line =br.readLine())!=null && line.length()!=0)
 			{
-				errorList.addElement(new ListItem(line));
+				boolean bLineFound=false;
+				for(int i=0; i<errorList.getSize();i++)
+				{
+					if(errorList.get(i).getFullLine().equals(line))
+					{
+						bLineFound=true;
+						foundItems.set(i, true);
+						i=errorList.getSize();
+					}
+				}
+				if(bLineFound==false)
+				{
+					errorList.addElement(new ListItem(line));
+				}
+			}
+			int removedObjects=0;
+			for(int i=0;  i<foundItems.size();i++)
+			{
+				if(foundItems.get(i)==false)
+				{
+					errorList.remove(i-removedObjects);
+					removedObjects++;
+				}
 			}
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
@@ -239,52 +266,7 @@ public class MainGUI extends JPanel
 		  public void actionPerformed(ActionEvent evt) {			  
 			  new Thread(new Runnable() {
 			        public void run() {
-			        	//Run Info Gather
-			        	//ErrorLine el = new ErrorLine(sFistUser,sFistPass,getCurrentItem().getFileID(),"08/05/2014","04:29:45","l4dwipap057","Error Message", "Stack");
-			        	/*
-			        	bGatherInfo.setEnabled(false);
-			        	int gatherItem = list.getSelectedIndex();
-			        	errorList.get(gatherItem).setGatheringInfo(true);
-			        	clearExpectations();
 			        	
-			        	FIST Fdriver = new FIST(sFistUser,sFistPass,true);
-			        	frame.requestFocus();
-			        	Fdriver.loginProd();
-			            errorList.get(gatherItem).setDevName(Fdriver.getDevName(errorList.get(gatherItem).getFileID()));
-			        	errorList.get(gatherItem).setServiceLocation(Fdriver.getLocation(errorList.get(gatherItem).getFileID()));
-			        	
-			        	Fdriver.loginConfig();
-			        	Fdriver.getExpectationsPage(errorList.get(gatherItem).getFileID(),"07/28/2014");
-			        	
-			        	int iExpectNum=Fdriver.getNumberOfExpectations();
-			        	
-			        	int counter=1;
-			        	for (int i = iExpectNum+1;i>1;i--)
-			        	{
-			        		errorList.get(gatherItem).addEnvironmentListItem(getEnvironmentName(Fdriver.getEnvironment(i)));
-			        		errorList.get(gatherItem).addExpectIDListItem(Fdriver.getExpectID(i));
-			        		errorList.get(gatherItem).addStatusListItem(Fdriver.getExpectStatus(i));
-			        		errorList.get(gatherItem).addExpectDateListItem(counter+": "+Fdriver.getExpectDate(i));
-			        		errorList.get(gatherItem).addStartTimeListItem(Fdriver.getStartTime(i));
-			        		errorList.get(gatherItem).addEndTimeListItem(Fdriver.getEndTime(i));
-			        		errorList.get(gatherItem).addAnalystNameListItem(Fdriver.getAnalyst(i));
-			        	counter++;
-			        	}
-			        	
-			        	errorList.get(gatherItem).setGatheringInfo(false);
-			        	errorList.get(gatherItem).setExpectNum(iExpectNum);
-			        	if(errorList.get(gatherItem).getExpectNum()>0)
-			        	{
-			        		errorList.get(gatherItem).setSelectedExpectNum(0);
-			        	}
-
-			        	if(gatherItem == list.getSelectedIndex())
-			        	{
-				        	populateErrorPanel();
-			        	}
-			        	
-			        	Fdriver.closeDriver();
-			        	*/
 			            }}).start();}});
 		
     	
@@ -371,7 +353,7 @@ public class MainGUI extends JPanel
 			        public void run() {
 			        	FIST Fdriver = new FIST(sFistUser,sFistPass,sOfficeLocation,false);
 			        	Fdriver.loginConfig();
-			        	Fdriver.getExpectationsPage(getCurrentItem().getFileID(),"07/28/2014");
+			        	Fdriver.getExpectationsPage(getCurrentItem().getFileID(),getCurrentItem().getDate());
 			                
 			            }}).start();}});
 		
@@ -807,7 +789,7 @@ public class MainGUI extends JPanel
 			}
 			
 			if(textData[0]==null || textData[0].contentEquals("") || textData[1]==null || textData[1].contentEquals("") || textData[2]==null || textData[2].contentEquals("") || textData[3]==null || textData[3].contentEquals("") || textData[4]==null || textData[4].contentEquals("")){
-				new File("C://Traige_Dashboard//credentials.txt").delete();
+				new File("C://Triage_Dashboard//credentials.txt").delete();
 				setupLoginPanel();
 			}
 				
@@ -883,24 +865,5 @@ public class MainGUI extends JPanel
 	   	getCurrentItem().getEndTimeList().clear();
 	   	getCurrentItem().getAnalystNameList().clear();
    }
-    
-   /*
-   final FocusListener fcsListener = new FocusListener() {
-
-        @Override
-        public void focusGained(FocusEvent e) {
-        	selectExpectation(cbExpectationSelect.getSelectedIndex());
-        }
-
-        @Override
-        public void focusLost(FocusEvent e) {
-        	selectExpectation(cbExpectationSelect.getSelectedIndex());
-        }
-        
-        
-        };
-
-*/
-
-      
+          
 }

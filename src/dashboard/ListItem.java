@@ -71,7 +71,7 @@ public class ListItem {
 		if(list.size()>10)
 		{
 		setFileID(list.get(0));
-		if(list.get(1)=="true"){setFinished(true);}
+		if(list.get(1).equals("true")){setFinished(true);}
 		else{setFinished(false);}
 		
 		setDate(list.get(2));
