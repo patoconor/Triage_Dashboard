@@ -26,7 +26,7 @@ public class FIST  {
 	private String URLstart;
 	Dimension screenSize;
 	
-	FIST (String username, String password, String officeLocation, boolean isHidden)
+	FIST (String username, String password, String officeLocation, boolean isHidden, WebDriver dr)
 	{
 		screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 		user=username;
@@ -41,17 +41,17 @@ public class FIST  {
 		}
 		
 		System.setProperty("webdriver.chrome.driver", "C://schema_creation/chromedriver.exe");
-		
-        if (isHidden ==true)
-        {
-        	ChromeOptions options = new ChromeOptions();
-    		options.addArguments("--window-position="+screenSize.width+","+screenSize.height);
-        	driver = new ChromeDriver(options);
-        }
-        else
-        {
-        	driver = new ChromeDriver();
-        }
+		driver = dr;
+//        if (isHidden ==true)
+//        {
+//        	ChromeOptions options = new ChromeOptions();
+//    		options.addArguments("--window-position="+screenSize.width+","+screenSize.height);
+//        	driver = new ChromeDriver(options);
+//        }
+//        else
+//        {
+//        	driver = new ChromeDriver();
+//        }
 		
 	}
 	

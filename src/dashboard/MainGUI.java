@@ -196,7 +196,8 @@ public class MainGUI extends JPanel
     	BufferedReader br;
     	String line;
 		try {
-			br = new BufferedReader(new FileReader("T://Triage_Dashboard//ActiveErrors.txt"));
+			//br = new BufferedReader(new FileReader("T://Triage_Dashboard//ActiveErrors.txt"));
+			br = new BufferedReader(new FileReader("R://BenIT//Files//All//WMInstall//ActiveErrors.txt"));
 			ArrayList <Boolean> foundItems = new ArrayList<Boolean> ();
 			for(int i=0; i<errorList.getSize();i++)
 			{

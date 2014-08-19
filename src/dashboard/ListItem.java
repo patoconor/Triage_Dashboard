@@ -22,7 +22,7 @@ public class ListItem {
 	private String server;
 	private String stackTrace;
 	private String service;
-	
+	private String dateTime;
 	
 	private int expectNum;
 	private int selectedExpectNum;
@@ -63,6 +63,15 @@ public class ListItem {
 		parseLineFromFile(getFullLine());
 	}
 	
+	public ListItem(String fileID, String dateTime, String server, String stack, String error, String service)
+	{
+		this.fileID=fileID;
+		this.dateTime = dateTime;
+		this.server = server;
+		this.stackTrace = stack;
+		this.errorMessage = error;
+		this.service = service;
+	}
 	
 	private void parseLineFromFile(String Line)
 	{
@@ -311,6 +320,14 @@ public class ListItem {
 
 	public void setTime(String time) {
 		this.time = time;
+	}
+
+	public String getDateTime() {
+		return dateTime;
+	}
+
+	public void setDateTime(String dateTime) {
+		this.dateTime = dateTime;
 	}
 
 	
