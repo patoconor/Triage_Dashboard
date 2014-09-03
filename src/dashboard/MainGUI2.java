@@ -18,6 +18,10 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.Statement;
 import java.util.*;
 
 
@@ -34,7 +38,7 @@ public class MainGUI2 extends JPanel
 	private String sServerPass;
 	private String sOfficeLocation;
 	
-	
+	private static MainGUI2 window;
 	private JSplitPane splitPane;
     private JSplitPane splitPaneBottom;
     
@@ -80,20 +84,18 @@ public class MainGUI2 extends JPanel
     
     private JDialog dCred;
     String[] textData= new String[5];
-    private JScrollPane scrollPane;
         
     
     
-    public MainGUI2() {
+    public MainGUI2() throws ClassNotFoundException, InstantiationException, IllegalAccessException, UnsupportedLookAndFeelException {
 
-    	
+    	UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
     	
     	//list of errors in left pane
     	errorList= new DefaultListModel<>();
-    	if(new File("C://Triage_Dashboard//ActiveErrors.txt").isFile()==true)
-    	{
+    	
     	setupList();
-    	}
+    	
         list = new JList<>(errorList);
         list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         list.setSelectedIndex(0);
@@ -170,7 +172,7 @@ public class MainGUI2 extends JPanel
         splitPaneBottom.setResizeWeight(1);
     
         //Provide a preferred size for the split pane.
-        splitPane.setPreferredSize(new Dimension(1103, 564));
+        splitPane.setPreferredSize(new Dimension(1123, 570));
         
         
 	    credCheck();
@@ -196,52 +198,85 @@ public class MainGUI2 extends JPanel
     	li.setFileID("63001");
     	errorList.addElement(li);
     	*/
-    	
     	BufferedReader br;
     	String line;
+    	
+    	
+    	Connection connection = null;
+        ResultSet resultSet = null;
+        Statement statement = null;
 		try {
-			br = new BufferedReader(new FileReader("T://Triage_Dashboard//ActiveErrors.txt"));
-			//br = new BufferedReader(new FileReader("R://BenIT//Files//All//WMInstall//ActiveErrors.txt"));
-			ArrayList <Boolean> foundItems = new ArrayList<Boolean> ();
-			for(int i=0; i<errorList.getSize();i++)
-			{
-				foundItems.add(false);
-			}
-			while((line =br.readLine())!=null && line.length()!=0)
-			{
-				boolean bLineFound=false;
-				for(int i=0; i<foundItems.size();i++)
-				{
-					if(errorList.get(i).getFullLine().equals(line))
-					{
-						bLineFound=true;
-						foundItems.set(i, true);
-						i=errorList.getSize();
-					}
-				}
-				if(bLineFound==false)
-				{
-					errorList.addElement(new ListItem(line));
-				}
-			}
-			int removedObjects=0;
-			for(int i=0;  i<foundItems.size();i++)
-			{
-				if(foundItems.get(i)==false)
-				{
-					errorList.remove(i-removedObjects);
-					removedObjects++;
-				}
-			}
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			try {
+	            Class.forName("org.firebirdsql.jdbc.FBDriver");
+	            connection = DriverManager
+	                    .getConnection(
+	                            "jdbc:firebirdsql://NUSDD2F0J6M1:3050/C:/database/BASE.fdb",
+	                            "sysdba", "masterkey");
+	            statement = connection.createStatement();
+	            resultSet = statement.executeQuery("select DISTINCT * from TRIAGE");
+	            //statement.executeUpdate("INSERT INTO TRIAGE (FILEID, STATUS, ERDATE, ERTIME, SERVER, LOCATION, DEVELOPER, FIST) VALUES ('"+fileID+"', '"+status+"', '"+date+"', '"+time+"', '"+server+"', '"+serviceLocation+"', '"+devName+"', '"+FullLine+"')");
+	            while(resultSet.next()){
+	            	String text = resultSet.getString("FILEID")+"|"+resultSet.getString("STATUS")+"|"+resultSet.getString("ERDATE")+"|"+resultSet.getString("ERTIME")+"|"+resultSet.getString("SERVER")+"|"+resultSet.getString("LOCATION")+"|"+resultSet.getString("DEVELOPER")+"|"+resultSet.getString("ERROR")+"|"+resultSet.getString("STACK")+"|"+resultSet.getString("FIST");
+	            	int erid = resultSet.getInt("ERRORID");
+	            	System.out.println(text);
+	            	errorList.addElement(new ListItem(text,erid));
+	            }
+	        } catch (Exception e) {
+	            e.printStackTrace();
+	        } finally {
+	            try {
+	                statement.close();
+	                connection.close();
+	            } catch (Exception e) {
+	                e.printStackTrace();
+	            }
+	        }
+		}finally{
+			
 		}
-		  	
     }
+//			br = new BufferedReader(new FileReader("A://Triage_Dashboard//ActiveErrors.txt"));
+//			//br = new BufferedReader(new FileReader("R://BenIT//Files//All//WMInstall//ActiveErrors.txt"));
+//			ArrayList <Boolean> foundItems = new ArrayList<Boolean> ();
+//			for(int i=0; i<errorList.getSize();i++)
+//			{
+//				foundItems.add(false);
+//			}
+//			while((line =br.readLine())!=null && line.length()!=0)
+//			{
+//				boolean bLineFound=false;
+//				for(int i=0; i<errorList.getSize();i++)
+//				{
+//					if(errorList.get(i).getFullLine().equals(line))
+//					{
+//						bLineFound=true;
+//						foundItems.set(i, true);
+//						i=errorList.getSize();
+//					}
+//				}
+//				if(bLineFound==false)
+//				{
+//					errorList.addElement(new ListItem(line));
+//				}
+//			}
+//			int removedObjects=0;
+//			for(int i=0;  i<foundItems.size();i++)
+//			{
+//				if(foundItems.get(i)==false)
+//				{
+//					errorList.remove(i-removedObjects);
+//					removedObjects++;
+//				}
+//			}
+//		} catch (FileNotFoundException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		} catch (IOException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+		  	
+    
     
     //Listens to the list
     public void valueChanged(ListSelectionEvent e) {
@@ -257,152 +292,63 @@ public class MainGUI2 extends JPanel
     //Shows the corresponding information for a selected error
     private void setupErrorPanel() {
     	
-    	JPanel panel = new JPanel();
-    	panel.setBounds(0, -1, 593, 280);
-    	errorViewPanel.add(panel);
-    	panel.setLayout(null);
-    	JLabel lFileID = new JLabel("File ID:");
-    	lFileID.setBounds(54, 81, 34, 20);
-    	panel.add(lFileID);
+    	JPanel pGatherArea = new JPanel();
+    	pGatherArea.setBounds(-1,-1,301,61);
+    	pGatherArea.setLayout(null);
+    	pGatherArea.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+    	errorViewPanel.add(pGatherArea);
     	
-    	tfFileID = new JTextField();
-    	tfFileID.setBounds(98, 81, 50, 20);
-    	panel.add(tfFileID);
-    	tfFileID.setEditable(false);
-    	tfFileID.setBackground(Color.WHITE);
-    	String [] serverStrings = {"View Server","View Server Log","View Error Log"};
-    	
-    	cbServerLocationSelect = new JComboBox <String> ();
-    	cbServerLocationSelect.setBounds(158, 81, 85, 20);
-    	panel.add(cbServerLocationSelect);
-    	cbServerLocationSelect.setModel(new DefaultComboBoxModel<String>(serverStrings));
-    	JLabel lAnalystName = new JLabel("Analyst:");
-    	lAnalystName.setBounds(47, 111, 50, 20);
-    	panel.add(lAnalystName);
-    	
-    	tfAnalystName = new JTextField();
-    	tfAnalystName.setBounds(96, 112, 152, 20);
-    	panel.add(tfAnalystName);
-    	tfAnalystName.setEditable(false);
-    	tfAnalystName.setBackground(Color.WHITE);
-    	JLabel lServerName = new JLabel("Server Name:");
-    	lServerName.setBounds(19, 145, 100, 20);
-    	panel.add(lServerName);
-    	
-    	tfServerName = new JTextField();
-    	tfServerName.setBounds(95, 143, 153, 20);
-    	panel.add(tfServerName);
-    	tfServerName.setEditable(false);
-    	tfServerName.setBackground(Color.WHITE);
-    	
-		tfEnvironment = new JTextField();
-		tfEnvironment.setBounds(93, 217, 100, 20);
-		panel.add(tfEnvironment);
-		tfEnvironment.setEditable(false);
-		tfEnvironment.setBackground(Color.WHITE);
-		
-		
-		cbExpectationSelect = new JComboBox <String> ();
-		cbExpectationSelect.setBounds(184, 186, 92, 20);
-		panel.add(cbExpectationSelect);
-		JLabel lExpectationID = new JLabel("Expectation ID:");
-		lExpectationID.setBounds(10, 186, 100, 20);
-		panel.add(lExpectationID);
-		
-    	tfExpectationID = new JTextField();
-    	tfExpectationID.setBounds(94, 186, 80, 20);
-    	panel.add(tfExpectationID);
-    	tfExpectationID.setEditable(false);
-    	tfExpectationID.setBackground(Color.WHITE);
-    	JLabel lEnvironment = new JLabel("Environment:");
-    	lEnvironment.setBounds(10, 217, 100, 20);
-    	panel.add(lEnvironment);
-    	JLabel lFailTime = new JLabel("Error Date/Time:");
-    	lFailTime.setBounds(310, 92, 100, 20);
-    	panel.add(lFailTime);
-    	
-    	
-		
-		tfFailTime = new JTextField();
-		tfFailTime.setBounds(410, 92, 180, 20);
-		panel.add(tfFailTime);
-		tfFailTime.setEditable(false);
-		tfFailTime.setBackground(Color.WHITE);
-		JLabel lServiceName = new JLabel("Location:");
-		lServiceName.setBounds(310, 122, 100, 20);
-		panel.add(lServiceName);
-		
-        
-		
-		tfServiceName = new JTextField();
-		tfServiceName.setBounds(370, 122, 220, 20);
-		panel.add(tfServiceName);
-		tfServiceName.setEditable(false);
-		tfServiceName.setBackground(Color.WHITE);
-		
-		tfDeveloperName = new JTextField();
-		tfDeveloperName.setBounds(377, 152, 213, 20);
-		panel.add(tfDeveloperName);
-		tfDeveloperName.setEditable(false);
-		tfDeveloperName.setBackground(Color.WHITE);
-		JLabel lDeveloperName = new JLabel("Developer:");
-		lDeveloperName.setBounds(310, 152, 100, 20);
-		panel.add(lDeveloperName);
-		JLabel lStartTime = new JLabel("Start Time:");
-		lStartTime.setBounds(310, 186, 100, 20);
-		panel.add(lStartTime);
-		
-		tfStartTime = new JTextField();
-		tfStartTime.setBounds(380, 186, 210, 20);
-		panel.add(tfStartTime);
-		tfStartTime.setEditable(false);
-		tfStartTime.setBackground(Color.WHITE);
-		JLabel lEndTime = new JLabel("End Time:");
-		lEndTime.setBounds(310, 216, 100, 20);
-		panel.add(lEndTime);
-		
-		tfEndTime = new JTextField();
-		tfEndTime.setBounds(380, 216, 210, 20);
-		panel.add(tfEndTime);
-		tfEndTime.setEditable(false);
-		tfEndTime.setBackground(Color.WHITE);
-		
-		bViewExpectations = new JButton();
-		bViewExpectations.setBounds(19, 248, 158, 20);
-		panel.add(bViewExpectations);
-		bViewExpectations.setText("Open Expectations Page");
-		
-		JLabel lblFileInf = new JLabel("File Info");
-		lblFileInf.setFont(new Font("Vrinda", Font.BOLD, 20));
-		lblFileInf.setBounds(104, 44, 92, 20);
-		panel.add(lblFileInf);
-		
-		tfExpectStatus = new JTextField();
-		tfExpectStatus.setBounds(377, 246, 213, 20);
-		panel.add(tfExpectStatus);
-		tfExpectStatus.setEditable(false);
-		tfExpectStatus.setBackground(Color.WHITE);
-		JLabel lExpectStatus = new JLabel("Status:");
-		lExpectStatus.setBounds(310, 247, 55, 20);
-		panel.add(lExpectStatus);
-		bViewExpectations.addActionListener(new ActionListener() {
+    	bGatherInfo = new JButton();
+    	bGatherInfo.setBounds(10, 10 , 280,40);
+    	bGatherInfo.setText("Gather Info");
+    	pGatherArea.add(bGatherInfo);
+    	bGatherInfo.addActionListener(new ActionListener() {
 		  public void actionPerformed(ActionEvent evt) {			  
 			  new Thread(new Runnable() {
 			        public void run() {
-			        	WebDriver dr = new ChromeDriver();
-			        	FIST Fdriver = new FIST(sFistUser,sFistPass,sOfficeLocation,false,dr);
-			        	Fdriver.loginConfig();
-			        	Fdriver.getExpectationsPage(getCurrentItem().getFileID(),getCurrentItem().getDate());
-			                
+			        	list.removeAll();
+			        	errorList.clear();
+			        	
+			        	
+			        	errorList= new DefaultListModel<>();
+			        	
+			        	setupList();
+			        	
+			            list = new JList<>(errorList);
+			            list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+			            list.setSelectedIndex(0);
+			            list.addListSelectionListener(null);
+			            list.setCellRenderer(new ListItemRenderer());
+			            
+			            //right panel for viewing error details
+			            errorViewPanel = new JPanel();
+			            errorViewPanel.setLayout(null);
+			            errorViewPanel.setPreferredSize(new Dimension(899, 559));
+			            
+			            setupErrorPanel();
+			            populateErrorPanel();
+						try {
+							window = new MainGUI2();
+						} catch (ClassNotFoundException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} catch (InstantiationException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} catch (IllegalAccessException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} catch (UnsupportedLookAndFeelException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+			            frame.getContentPane().add(window.getPane());
+			       //     frame.setMinimumSize(new Dimension(500, 300));
+
+			            //Display the window.
+			            frame.pack();
+			            frame.setVisible(true);
 			            }}).start();}});
-		
-		cbExpectationSelect.addActionListener(new ActionListener() {
-			  public void actionPerformed(ActionEvent evt) {			  
-				  getCurrentItem().setSelectedExpectNum(cbExpectationSelect.getSelectedIndex());
-				  selectExpectation();
-			  
-			  
-			  }});
 		
     	
     	JPanel pInfoFields = new JPanel();
@@ -413,28 +359,198 @@ public class MainGUI2 extends JPanel
     	errorViewPanel.add(pInfoFields);
     	
     	int yShift=30;
+    	
+        tfFileID = new JTextField();
+        tfFileID.setBounds(50,10, 50, 20);
+        tfFileID.setEditable(false);
+        tfFileID.setBackground(Color.WHITE);
+        pInfoFields.add(tfFileID);
+		JLabel lFileID = new JLabel("File ID:");
+		lFileID.setBounds(10, 10, 100, 20);
+		pInfoFields.add(lFileID);
+        
+        
+		
+		tfFailTime = new JTextField();
+		tfFailTime.setBounds(110, 10 + 1*yShift, 180, 20);
+		tfFailTime.setEditable(false);
+		tfFailTime.setBackground(Color.WHITE);
+        pInfoFields.add(tfFailTime);
+		JLabel lFailTime = new JLabel("Error Date/Time:");
+		lFailTime.setBounds(10, 10 +1*yShift, 100, 20);
+		pInfoFields.add(lFailTime);
+		
+        
+		
+		tfServiceName = new JTextField();
+		tfServiceName.setBounds(70, 10 + 2*yShift, 220, 20);
+		tfServiceName.setEditable(false);
+		tfServiceName.setBackground(Color.WHITE);
+        pInfoFields.add(tfServiceName);
+		JLabel lServiceName = new JLabel("Location:");
+		lServiceName.setBounds(10, 10 +2*yShift, 100, 20);
+		pInfoFields.add(lServiceName);
+		
+		tfDeveloperName = new JTextField();
+        tfDeveloperName.setBounds(77, 10 + 3*yShift, 213, 20);
+        tfDeveloperName.setEditable(false);
+        tfDeveloperName.setBackground(Color.WHITE);
+        pInfoFields.add(tfDeveloperName);
+		JLabel lDeveloperName = new JLabel("Developer:");
+		lDeveloperName.setBounds(10, 10 +3*yShift, 100, 20);
+		pInfoFields.add(lDeveloperName);
+		
+		
+		
+		JPanel pExpectations = new JPanel();
+		pExpectations.setBounds(-1,129,601,131);
+		pExpectations.setLayout(null);
+		pExpectations.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+    	errorViewPanel.add(pExpectations);
+    	
+		
+		cbExpectationSelect = new JComboBox <String> ();
+		cbExpectationSelect.setBounds(115, 10, 174, 20);
+		pExpectations.add(cbExpectationSelect);
+		JLabel lExpectationSelect = new JLabel("Pick Expectation:");
+		lExpectationSelect.setBounds(10,10, 100, 20);
+		pExpectations.add(lExpectationSelect);
+		
+		cbExpectationSelect.addActionListener(new ActionListener() {
+			  public void actionPerformed(ActionEvent evt) {			  
+				  getCurrentItem().setSelectedExpectNum(cbExpectationSelect.getSelectedIndex());
+				  selectExpectation();
+			  
+			  
+			  }});
+		
+		bViewExpectations = new JButton();
+		bViewExpectations.setBounds(362, 10, 228, 20);
+		bViewExpectations.setText("Open Expectations Page");
+		pExpectations.add(bViewExpectations);
+    	bViewExpectations.addActionListener(new ActionListener() {
+		  public void actionPerformed(ActionEvent evt) {			  
+			  new Thread(new Runnable() {
+			        public void run() {
+			        	WebDriver dr = new ChromeDriver();
+			        	FIST Fdriver = new FIST(sFistUser,sFistPass,sOfficeLocation,false,dr);
+			        	Fdriver.loginConfig();
+			        	Fdriver.getExpectationsPage(getCurrentItem().getFileID(),getCurrentItem().getDate());
+			                
+			            }}).start();}});
+		
+    	tfExpectationID = new JTextField();
+        tfExpectationID.setBounds(100,10 + 1*yShift, 80, 20);
+        tfExpectationID.setEditable(false);
+        tfExpectationID.setBackground(Color.WHITE);
+        pExpectations.add(tfExpectationID);
+		JLabel lExpectationID = new JLabel("Expectation ID:");
+		lExpectationID.setBounds(10, 10 + 1*yShift, 100, 20);
+		pExpectations.add(lExpectationID);
+		
+		tfExpectStatus = new JTextField();
+		tfExpectStatus.setBounds(56,10 + 2*yShift, 234, 20);
+		tfExpectStatus.setEditable(false);
+		tfExpectStatus.setBackground(Color.WHITE);
+        pExpectations.add(tfExpectStatus);
+		JLabel lExpectStatus = new JLabel("Status:");
+		lExpectStatus.setBounds(10, 10 + 2*yShift, 100, 20);
+		pExpectations.add(lExpectStatus);
+		
+		tfStartTime = new JTextField();
+		tfStartTime.setBounds(380, 10 + 2*yShift, 210, 20);
+		tfStartTime.setEditable(false);
+		tfStartTime.setBackground(Color.WHITE);
+        pExpectations.add(tfStartTime);
+		JLabel lStartTime = new JLabel("Start Time:");
+		lStartTime.setBounds(310, 10 + 2*yShift, 100, 20);
+		pExpectations.add(lStartTime);
+		
+		tfEndTime = new JTextField();
+		tfEndTime.setBounds(380, 10 + 3*yShift, 210, 20);
+		tfEndTime.setEditable(false);
+		tfEndTime.setBackground(Color.WHITE);
+        pExpectations.add(tfEndTime);
+		JLabel lEndTime = new JLabel("End Time:");
+		lEndTime.setBounds(310, 10 + 3*yShift, 100, 20);
+		pExpectations.add(lEndTime);
+		
+        tfAnalystName = new JTextField();
+        tfAnalystName.setBounds(362, 10 + 1*yShift, 228, 20);
+        tfAnalystName.setEditable(false);
+        tfAnalystName.setBackground(Color.WHITE);
+        pExpectations.add(tfAnalystName);
+		JLabel lAnalystName = new JLabel("Analyst:");
+		lAnalystName.setBounds(310, 10 + 1*yShift, 100, 20);
+		pExpectations.add(lAnalystName);
+        
+		tfEnvironment = new JTextField();
+        tfEnvironment.setBounds(90, 10 + 3*yShift, 200 , 20);
+        tfEnvironment.setEditable(false);
+        tfEnvironment.setBackground(Color.WHITE);
+        pExpectations.add(tfEnvironment);
+		JLabel lEnvironment = new JLabel("Environment:");
+		lEnvironment.setBounds(10, 10 +3*yShift, 100, 20);
+		pExpectations.add(lEnvironment);
+		
+        
+		
+		JPanel pServer = new JPanel();
+		pServer.setBounds(-1,59,301,71);
+		pServer.setLayout(null);
+		pServer.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+    	errorViewPanel.add(pServer);
+        
+    	tfServerName = new JTextField();
+    	tfServerName.setBounds(93, 10, 197, 20);
+    	tfServerName.setEditable(false);
+    	tfServerName.setBackground(Color.WHITE);
+    	pServer.add(tfServerName);
+		JLabel lServerName = new JLabel("Server Name:");
+		lServerName.setBounds(10, 10 , 100, 20);
+		pServer.add(lServerName);
+		
+		
+		cbServerLocationSelect = new JComboBox <String> ();
+		cbServerLocationSelect.setBounds(10, 10 + 1*yShift , 150, 20);
+		pServer.add(cbServerLocationSelect);
+		String [] serverStrings = {"View Server","View Server Log","View Error Log"};
+		cbServerLocationSelect.setModel(new DefaultComboBoxModel<String>(serverStrings));
+		
+		
+		
+        bServer = new JButton();
+        bServer.setBounds(170, 10 + 1*yShift , 110, 20);
+        bServer.setText("View");
+        pServer.add(bServer);
+    	bServer.addActionListener(new ActionListener() {
+		  public void actionPerformed(ActionEvent evt) {			  
+			  new Thread(new Runnable() {
+			        public void run() {
+			        	Server.user=sServerUser;
+			        	Server.pw=sServerPass;			        	
+			        	Server.serverLogin(getCurrentItem().getServer(),cbServerLocationSelect.getSelectedIndex());
+			        	
+			            }}).start();}});
         
     	
         JPanel pErrorInfo = new JPanel();
-        pErrorInfo.setBounds(-1,285,601,464);
+        pErrorInfo.setBounds(-1,259,601,301);
         pErrorInfo.setLayout(null);
         pErrorInfo.setBorder(BorderFactory.createLineBorder(Color.BLACK));
     	errorViewPanel.add(pErrorInfo);
     	
     	
     	JLabel lErrorHeader = new JLabel("Error Information:");
-    	lErrorHeader.setBounds(252, 11 , 100, 20);
+    	lErrorHeader.setBounds(250, 0 , 100, 20);
     	pErrorInfo.add(lErrorHeader);
-    	
-    	scrollPane = new JScrollPane();
-    	scrollPane.setBounds(10, 42, 580, 296);
-    	pErrorInfo.add(scrollPane);
     	
     	
     	tpErrorText = new JTextPane();
-    	scrollPane.setViewportView(tpErrorText);
+    	tpErrorText.setBounds(10, 20, 580, 270);
     	tpErrorText.setEditable(false);
     	tpErrorText.setBackground(Color.WHITE);
+    	pErrorInfo.add(tpErrorText);
     	
     	
     	JPanel pActions = new JPanel();
@@ -505,7 +621,7 @@ public class MainGUI2 extends JPanel
     	pRecommended.add(lRecommendedHeader);
     	
         tpRecommendedAction = new JTextPane();
-        tpRecommendedAction.setBounds(20, 11, 280, 260);
+        tpRecommendedAction.setBounds(10, 20, 280, 260);
         tpRecommendedAction.setEditable(false);
         tpRecommendedAction.setBackground(Color.WHITE);
     	pRecommended.add(tpRecommendedAction);
@@ -515,32 +631,58 @@ public class MainGUI2 extends JPanel
         bTakeAction.setText("Take Recommended Action");
         pRecommended.add(bTakeAction);
         
-        bGatherInfo = new JButton();
-        bGatherInfo.setBounds(652, 556, 280, 40);
-        errorViewPanel.add(bGatherInfo);
-        bGatherInfo.setText("Gather Info");
+        JLabel lblStatus = new JLabel("Status:");
+        lblStatus.setBounds(610, 419, 46, 14);
+        errorViewPanel.add(lblStatus);
         
+        final JComboBox comboBox = new JComboBox();
+        comboBox.setBounds(653, 416, 110, 20);
+        errorViewPanel.add(comboBox);
+        comboBox.setModel(new DefaultComboBoxModel(new String[] {"In Progress", "Complete"}));
         
-        
-        bServer = new JButton();
-        bServer.setBounds(822, 525, 110, 20);
-        errorViewPanel.add(bServer);
-        bServer.setText("View");
-        bServer.addActionListener(new ActionListener() {
-		  public void actionPerformed(ActionEvent evt) {			  
-			  new Thread(new Runnable() {
-			        public void run() {
-			        	Server.user=sServerUser;
-			        	Server.pw=sServerPass;			        	
-			        	Server.serverLogin(getCurrentItem().getServer(),cbServerLocationSelect.getSelectedIndex());
-			        	
-			            }}).start();}});
-        bGatherInfo.addActionListener(new ActionListener() {
-		  public void actionPerformed(ActionEvent evt) {			  
-			  new Thread(new Runnable() {
-			        public void run() {
-			        	
-			            }}).start();}});
+        JButton btnNewButton = new JButton("Change Status");
+        btnNewButton.setBounds(773, 413, 127, 23);
+        errorViewPanel.add(btnNewButton);
+        btnNewButton.addMouseListener(new MouseAdapter() {
+        	@Override
+        	public void mouseClicked(MouseEvent e) {
+        		if(comboBox.getSelectedItem().toString().equals("In Progress")){
+        			Connection connection = null;
+        	        ResultSet resultSet = null;
+        	        Statement statement = null;
+        			try {
+        	            Class.forName("org.firebirdsql.jdbc.FBDriver");
+        	            connection = DriverManager
+        	                    .getConnection(
+        	                            "jdbc:firebirdsql://NUSDD2F0J6M1:3050/C:/database/BASE.fdb",
+        	                            "sysdba", "masterkey");
+        	            statement = connection.createStatement();
+        	            statement.executeUpdate("UPDATE TRIAGE set STATUS = '1'where ERRORID = "+getCurrentItem().getErid()+"");
+        	            bGatherInfo.doClick();
+        			} catch (Exception e1) {
+        	            e1.printStackTrace();
+        	        }
+        		}
+        		if(comboBox.getSelectedItem().toString().equals("Complete")){
+        			Connection connection = null;
+        	        ResultSet resultSet = null;
+        	        Statement statement = null;
+        			try {
+        	            Class.forName("org.firebirdsql.jdbc.FBDriver");
+        	            connection = DriverManager
+        	                    .getConnection(
+        	                            "jdbc:firebirdsql://NUSDD2F0J6M1:3050/C:/database/BASE.fdb",
+        	                            "sysdba", "masterkey");
+        	            statement = connection.createStatement();
+        	            statement.executeUpdate("UPDATE TRIAGE set STATUS = '2'where ERRORID = "+getCurrentItem().getErid()+"");
+        	            bGatherInfo.doClick();
+        			} catch (Exception e1) {
+        	            e1.printStackTrace();
+        	        }
+        		}
+        	//	awd
+        	}
+        });
     	bTakeAction.addActionListener(new ActionListener() {
 		  public void actionPerformed(ActionEvent evt) {			  
 			  new Thread(new Runnable() {
@@ -579,6 +721,17 @@ public class MainGUI2 extends JPanel
    
     
     private void populateErrorPanel () {
+    	if(errorList.size()==0){
+    		tfFileID.setText("");
+        	tfDeveloperName.setText("");
+        	tfDeveloperName.setCaretPosition(0);
+        	tfServiceName.setText("");
+        	tfServiceName.setCaretPosition(0);
+        	tfFailTime.setText("   |   ");
+        	tfServerName.setText("");
+        	String[] DateArray = new String[0];
+    	}
+    	if(errorList.size()>0){
     	tfFileID.setText(getCurrentItem().getFileID());
     	tfDeveloperName.setText(getCurrentItem().getDevName());
     	tfDeveloperName.setCaretPosition(0);
@@ -616,7 +769,7 @@ public class MainGUI2 extends JPanel
     	tpErrorText.setText(getCurrentItem().getErrorMessage()+"\n\n"+getCurrentItem().getStackTrace());
     	
     }
-    
+    }
 
     public JSplitPane getPane() {
         return splitPaneBottom;
@@ -796,12 +949,12 @@ public class MainGUI2 extends JPanel
     	}
     }
 
-    private static void createAndShowGUI() {
+    private static void createAndShowGUI() throws ClassNotFoundException, InstantiationException, IllegalAccessException, UnsupportedLookAndFeelException {
 
         //Create and set up the window.
         frame = new JFrame("Triage Dashboard");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        MainGUI2 window = new MainGUI2();
+        window = new MainGUI2();
         frame.getContentPane().add(window.getPane());
    //     frame.setMinimumSize(new Dimension(500, 300));
 
@@ -816,7 +969,21 @@ public class MainGUI2 extends JPanel
         //creating and showing this application's GUI.
         javax.swing.SwingUtilities.invokeLater(new Runnable() {
             public void run() {
-                createAndShowGUI();
+                try {
+					createAndShowGUI();
+				} catch (ClassNotFoundException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (InstantiationException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IllegalAccessException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (UnsupportedLookAndFeelException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
                 
             }
         });
@@ -824,18 +991,24 @@ public class MainGUI2 extends JPanel
     
 
     public class ListItemRenderer extends JLabel implements ListCellRenderer<ListItem> {
-        @Override
+        /**
+		 * 
+		 */
         public Component getListCellRendererComponent(JList<? extends ListItem> list, ListItem item, int index, boolean isSelected, boolean cellHasFocus) {
         	setOpaque(true);
         	
             setText(item.getFileID() + " | " +item.getTime() + " | " + item.getDate());
-            if(item.isFinished())
+            if(item.getStatus().equals("2"))
             {
-            	setBackground(new Color(Integer.parseInt( "ABEDA8",16)));
+            	setBackground(Color.GREEN);
             }
-            else
+            if(item.getStatus().equals("1"))
             {
-            	setBackground(new Color(Integer.parseInt( "EDA8B4",16)));
+            	setBackground(Color.YELLOW);
+            }
+            if(item.getStatus().equals("0"))
+            {
+            	setBackground(Color.RED);
             }
             
             if (isSelected) {

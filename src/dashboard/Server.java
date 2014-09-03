@@ -90,6 +90,12 @@ public class Server {
 	
 	
 	public ArrayList<ListItem> CreateErrorLogs(WebDriver driver){
+			try {
+				Thread.sleep(5000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			ArrayList<ListItem> listItems = new ArrayList<ListItem>();
 			System.setProperty("webdriver.chrome.driver", "C://schema_creation/chromedriver.exe");
 	        for(int m=4;m<8;m++){
@@ -132,19 +138,23 @@ public class Server {
 	        	
 	        }
 	        if(data.size()==1){
-	        	for(int i=0; i<data.size()-1;i++){
+	        	for(int i=0; i<data.size();i++){
 	        	String dateTime = data.get(i)[0];
-		        String service = data.get(i)[1]+"*"+data.get(i+1)[1];
+		        String service = data.get(i)[1];
 		        String stack = data.get(i)[2];
 		        String error = data.get(i)[3];
 		        String server = "l4dwipap05"+m;
-		        String fileID = "";
-		        if(data.get(i)[1].contains(":HA")==false){
-	        		fileID = data.get(i+1)[3].substring(data.get(i+1)[3].length()-5, data.get(i+1)[3].length());
-	        	}
-		        else{
-		        	fileID = data.get(i+1)[1].substring(data.get(i+1)[1].length()-5, data.get(i+1)[1].length());
-		        }
+		        String fileID = "?";
+		        if(service.contains(":HA")){
+        			fileID = service.substring(service.indexOf(":HA")+3,service.indexOf(":HA")+8);
+        		}
+        		if(stack.contains(":HA")){
+        			fileID = stack.substring(stack.indexOf(":HA")+3,stack.indexOf(":HA")+8);
+        		}
+        		if(error.contains(":HA")){
+        			fileID = error.substring(error.indexOf(":HA")+3,error.indexOf(":HA")+8);
+        		}
+        		System.out.println("fileID: "+fileID);
 		        listItems.add(new ListItem(fileID,dateTime,server,stack,error,service));
 	        	}
 	        }
@@ -211,7 +221,9 @@ public class Server {
 	        for(int i=0;i<listItems.size();i++){
 	        	System.out.println((listItems.get(i).getFileID()+"|"+listItems.get(i).getDateTime()+"|"+listItems.get(i).getServer()+"|"+listItems.get(i).getService()+"|"+listItems.get(i).getErrorMessage()+"|"+listItems.get(i).getStackTrace()));
 	        }
+	        
 	        return listItems;
+	        
 	}
 	
 }

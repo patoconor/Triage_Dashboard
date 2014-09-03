@@ -14,7 +14,14 @@ import java.io.UnsupportedEncodingException;
 import javax.swing.*;
 import javax.swing.event.*;
 
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.chrome.ChromeDriver;
 
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.Statement;
 import java.util.*;
 
 
@@ -195,49 +202,84 @@ public class MainGUI extends JPanel
     	
     	BufferedReader br;
     	String line;
+    	
+    	
+    	Connection connection = null;
+        ResultSet resultSet = null;
+        Statement statement = null;
 		try {
-			//br = new BufferedReader(new FileReader("T://Triage_Dashboard//ActiveErrors.txt"));
-			br = new BufferedReader(new FileReader("R://BenIT//Files//All//WMInstall//ActiveErrors.txt"));
-			ArrayList <Boolean> foundItems = new ArrayList<Boolean> ();
-			for(int i=0; i<errorList.getSize();i++)
-			{
-				foundItems.add(false);
-			}
-			while((line =br.readLine())!=null && line.length()!=0)
-			{
-				boolean bLineFound=false;
-				for(int i=0; i<errorList.getSize();i++)
-				{
-					if(errorList.get(i).getFullLine().equals(line))
-					{
-						bLineFound=true;
-						foundItems.set(i, true);
-						i=errorList.getSize();
-					}
-				}
-				if(bLineFound==false)
-				{
-					errorList.addElement(new ListItem(line));
-				}
-			}
-			int removedObjects=0;
-			for(int i=0;  i<foundItems.size();i++)
-			{
-				if(foundItems.get(i)==false)
-				{
-					errorList.remove(i-removedObjects);
-					removedObjects++;
-				}
-			}
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			try {
+	            Class.forName("org.firebirdsql.jdbc.FBDriver");
+	            connection = DriverManager
+	                    .getConnection(
+	                            "jdbc:firebirdsql://NUSDD2F0J6M1:3050/C:/database/BASE.fdb",
+	                            "sysdba", "masterkey");
+	            statement = connection.createStatement();
+	            resultSet = statement.executeQuery("select DISTINCT * from TRIAGE");
+	            //statement.executeUpdate("INSERT INTO TRIAGE (FILEID, STATUS, ERDATE, ERTIME, SERVER, LOCATION, DEVELOPER, FIST) VALUES ('"+fileID+"', '"+status+"', '"+date+"', '"+time+"', '"+server+"', '"+serviceLocation+"', '"+devName+"', '"+FullLine+"')");
+	            while(resultSet.next()){
+	            	String text = resultSet.getString("FILEID")+"|"+resultSet.getString("STATUS")+"|"+resultSet.getString("ERDATE")+"|"+resultSet.getString("ERTIME")+"|"+resultSet.getString("SERVER")+"|"+resultSet.getString("LOCATION")+"|"+resultSet.getString("DEVELOPER")+"|"+resultSet.getString("ERROR")+"|"+resultSet.getString("STACK")+"|"+resultSet.getString("FIST");
+	            	int erid = resultSet.getInt("ERRORID");
+	            	System.out.println(text);
+	            	errorList.addElement(new ListItem(text,erid));
+	            }
+	        } catch (Exception e) {
+	            e.printStackTrace();
+	        } finally {
+	            try {
+	                statement.close();
+	                connection.close();
+	            } catch (Exception e) {
+	                e.printStackTrace();
+	            }
+	        }
+		}finally{
+			
 		}
-		  	
+			
     }
+//			br = new BufferedReader(new FileReader("A://Triage_Dashboard//ActiveErrors.txt"));
+//			//br = new BufferedReader(new FileReader("R://BenIT//Files//All//WMInstall//ActiveErrors.txt"));
+//			ArrayList <Boolean> foundItems = new ArrayList<Boolean> ();
+//			for(int i=0; i<errorList.getSize();i++)
+//			{
+//				foundItems.add(false);
+//			}
+//			while((line =br.readLine())!=null && line.length()!=0)
+//			{
+//				boolean bLineFound=false;
+//				for(int i=0; i<errorList.getSize();i++)
+//				{
+//					if(errorList.get(i).getFullLine().equals(line))
+//					{
+//						bLineFound=true;
+//						foundItems.set(i, true);
+//						i=errorList.getSize();
+//					}
+//				}
+//				if(bLineFound==false)
+//				{
+//					errorList.addElement(new ListItem(line));
+//				}
+//			}
+//			int removedObjects=0;
+//			for(int i=0;  i<foundItems.size();i++)
+//			{
+//				if(foundItems.get(i)==false)
+//				{
+//					errorList.remove(i-removedObjects);
+//					removedObjects++;
+//				}
+//			}
+//		} catch (FileNotFoundException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		} catch (IOException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+		  	
+    
     
     //Listens to the list
     public void valueChanged(ListSelectionEvent e) {
@@ -267,7 +309,6 @@ public class MainGUI extends JPanel
 		  public void actionPerformed(ActionEvent evt) {			  
 			  new Thread(new Runnable() {
 			        public void run() {
-			        	
 			            }}).start();}});
 		
     	
@@ -352,7 +393,8 @@ public class MainGUI extends JPanel
 		  public void actionPerformed(ActionEvent evt) {			  
 			  new Thread(new Runnable() {
 			        public void run() {
-			        	FIST Fdriver = new FIST(sFistUser,sFistPass,sOfficeLocation,false);
+			        	WebDriver dr = new ChromeDriver();
+			        	FIST Fdriver = new FIST(sFistUser,sFistPass,sOfficeLocation,false,dr);
 			        	Fdriver.loginConfig();
 			        	Fdriver.getExpectationsPage(getCurrentItem().getFileID(),getCurrentItem().getDate());
 			                
@@ -502,7 +544,8 @@ public class MainGUI extends JPanel
 			        public void run() {
 			        	if(getCurrentItem().getExpectNum()!=0)
 			        	{
-			        		FIST Fdriver = new FIST(sFistUser,sFistPass,sOfficeLocation,false);
+			        		WebDriver dr = new ChromeDriver();
+			        		FIST Fdriver = new FIST(sFistUser,sFistPass,sOfficeLocation,false,dr);
 			        		Fdriver.loginConfig();
 			        		Fdriver.getExpectationsPage(getCurrentItem().getFileID(),getCurrentItem().getDate());
 			        		Fdriver.errorReply((getCurrentItem().getExpectNum() +(1 - cbExpectationSelect.getSelectedIndex())), getCurrentItem().getFileID(), true);
@@ -519,7 +562,8 @@ public class MainGUI extends JPanel
 			        public void run() {
 			        	if(getCurrentItem().getExpectNum()!=0)
 			        	{
-			        		FIST Fdriver = new FIST(sFistUser,sFistPass,sOfficeLocation,false);
+			        		WebDriver dr = new ChromeDriver();
+			        		FIST Fdriver = new FIST(sFistUser,sFistPass,sOfficeLocation,false,dr);
 			        		Fdriver.loginConfig();
 			        		Fdriver.getExpectationsPage(getCurrentItem().getFileID(),getCurrentItem().getDate());
 			        		Fdriver.errorReply((getCurrentItem().getExpectNum() +(1 - cbExpectationSelect.getSelectedIndex())), getCurrentItem().getFileID(), true);
@@ -835,13 +879,17 @@ public class MainGUI extends JPanel
         	setOpaque(true);
         	
             setText(item.getFileID() + " | " +item.getTime() + " | " + item.getDate());
-            if(item.isFinished())
+            if(item.getStatus().equals("2"))
             {
-            	setBackground(new Color(Integer.parseInt( "ABEDA8",16)));
+            	setBackground(Color.GREEN);
             }
-            else
+            if(item.getStatus().equals("1"))
             {
-            	setBackground(new Color(Integer.parseInt( "EDA8B4",16)));
+            	setBackground(Color.YELLOW);
+            }
+            if(item.getStatus().equals("0"))
+            {
+            	setBackground(Color.RED);
             }
             
             if (isSelected) {

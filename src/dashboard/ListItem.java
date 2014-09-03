@@ -23,8 +23,10 @@ public class ListItem {
 	private String stackTrace;
 	private String service;
 	private String dateTime;
-	
+	private String status;
+	private int erid;
 	private int expectNum;
+
 	private int selectedExpectNum;
 	private ArrayList <String> expectDateList;
 	private ArrayList <String> expectIDList;
@@ -34,7 +36,7 @@ public class ListItem {
 	private ArrayList <String> startTimeList;
 	private ArrayList <String> endTimeList;
 	
-	public ListItem(String Line)
+	public ListItem(String Line,int erid)
 	{
 		FullLine=Line;
 		
@@ -47,8 +49,9 @@ public class ListItem {
 		errorMessage="";
 		server="";
 		stackTrace="";
+		status="";
 		service="";
-		
+		this.erid=erid;
 		
 		expectNum=0;
 		selectedExpectNum=0;
@@ -60,29 +63,40 @@ public class ListItem {
 		startTimeList = new ArrayList <String> ();
 		endTimeList = new ArrayList <String> ();
 		
-		parseLineFromFile(getFullLine());
+	    parseLineFromFile(getFullLine(),erid);
 	}
 	
 	public ListItem(String fileID, String dateTime, String server, String stack, String error, String service)
 	{
-		this.fileID=fileID;
-		this.dateTime = dateTime;
-		this.server = server;
-		this.stackTrace = stack;
-		this.errorMessage = error;
-		this.service = service;
+		setFileID(fileID);
+		setDateTime(dateTime);
+		setServer(server);
+		setStackTrace(stack);
+		setErrorMessage(error);
+		setService(service);
 	}
 	
-	private void parseLineFromFile(String Line)
+	private void parseLineFromFile(String Line, int erid)
 	{
 		List<String> list = Lists.newArrayList(Splitter.on("|").split(Line));
-		
+		if(list.size()<=10)
+		{
+		setFileID(list.get(0));
+		setStatus(list.get(1));
+		setErid(erid);
+		setDate(list.get(2));
+		setTime(list.get(3));
+		setServer(list.get(4));
+		setServiceLocation(list.get(5));
+		setDevName(list.get(6));
+		setErrorMessage(list.get(7));
+		setStackTrace(list.get(8));
+		//setExpectNum(Integer.parseInt(list.get(9)));
+		}
 		if(list.size()>10)
 		{
 		setFileID(list.get(0));
-		if(list.get(1).equals("true")){setFinished(true);}
-		else{setFinished(false);}
-		
+		setStatus(list.get(1));
 		setDate(list.get(2));
 		setTime(list.get(3));
 		setServer(list.get(4));
@@ -94,6 +108,7 @@ public class ListItem {
 		}
 		int i = 10;
 		int expectNum=0;
+		if(list.size()>10){
 		while(!list.get(i).equals("ENDOFEXPECTATIONS"))
 		{
 			if(list.get(i).equals("STARTEXPECTATION"))
@@ -116,9 +131,23 @@ public class ListItem {
 			i++;	
 			expectNum++;
 		}
-		
+		}
 	}
-	
+	public int getErid() {
+		return erid;
+	}
+
+	public void setErid(int erid) {
+		this.erid = erid;
+	}
+
+	public String getStatus() {
+		return status;
+	}
+
+	public void setStatus(String status) {
+		this.status = status;
+	}
 	public String getFileID() {
 		return fileID;
 	}
