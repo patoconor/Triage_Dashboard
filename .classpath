@@ -22,5 +22,10 @@
 			<attribute name="javadoc_location" value="jar:file:/C:/Vijay/jaybird-2.2.5-javadoc.jar!/"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry kind="lib" path="C:/Users/ah0184930/Desktop/sqljdbc4.jar"/>
+	<classpathentry kind="lib" path="C:/Vijay/wm-isclient.jar" sourcepath="C:/Vijay/wm-isclient.jar"/>
+	<classpathentry kind="lib" path="C:/Vijay/mail.jar" sourcepath="/org.eclipse.swt/mail.jar"/>
+	<classpathentry kind="lib" path="C:/Vijay/enttoolkit.jar" sourcepath="C:/Vijay/enttoolkit.jar"/>
+	<classpathentry kind="lib" path="C:/Vijay/javax.mail.jar" sourcepath="C:/Vijay/javax.mail.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

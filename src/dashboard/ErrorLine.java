@@ -14,6 +14,9 @@ import org.firebirdsql.jdbc.*;
 
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 
 public class ErrorLine {
 	
@@ -46,19 +49,53 @@ public class ErrorLine {
 	private ArrayList <String> startTimeList;
 	private ArrayList <String> endTimeList;
 	public static void main (String[] args){
-		int run = 0;
-		System.setProperty("webdriver.chrome.driver", "C://schema_creation/chromedriver.exe");
-		WebDriver dr = new ChromeDriver();
-		while(run == 0){
-		Server server = new Server();
-		ArrayList<ListItem> listItems = server.CreateErrorLogs(dr);
-		System.out.println(listItems.size());
-		ErrorLine erline = new ErrorLine();
-		erline.createErrorLine("poconorhra","Spektor33!",listItems,dr);
-		}
+//		int run = 0;
+//		System.setProperty("webdriver.chrome.driver", "C://schema_creation/chromedriver.exe");
+//		WebDriver dr = new ChromeDriver();
+//		while(run == 0){
+//		Server server = new Server();
+//		ArrayList<ListItem> listItems = server.CreateErrorLogs(dr);
+//		System.out.println(listItems.size());
+//		ErrorLine erline = new ErrorLine();
+//		erline.createErrorLine("poconorhra","Spektor33!",listItems,dr);
+//		}
+//		
+		insertMessageQ();
+	}
+	public static void insertMessageQ(){
+		Connection connection = null;
+        ResultSet resultSet = null;
+        Statement statement = null;
+		try {
+            String connectionURL = "jdbc:sqlserver://L4DWIPDS011.hewitt.com:13163;" + "databaseName=FileConfig;user=poconor;password=Spektor29!;";
+            connection = DriverManager
+                    .getConnection(connectionURL);
+            statement = connection.createStatement();
+            resultSet = statement.executeQuery("SELECT TOP 1000 *   FROM [FileConfig].[dbo].[messageQ]   WHERE msg_toaddressoverride NOT LIKE '%phuong.dam@aonhewitt.com%'   and msg_inserted_dttime > '2014-09-01'   AND msg_toaddressoverride NOT LIKE '%rob.neilson@aonhewitt.com%'   AND msg_toaddressoverride NOT LIKE '%tammy.adams@aonhewitt.com%'   AND msg_toaddressoverride NOT LIKE '%jon.petit@aonhewitt.com%'   AND msg_toaddressoverride NOT LIKE '%rob.neilson@aonhewitt.com%'   AND msg_toaddressoverride NOT LIKE '%sethiya.um@aonhewitt.com%'   AND msg_toaddressoverride NOT LIKE '%chad.smith@aonhewitt.com%'   AND msg_toaddressoverride NOT LIKE '%art.feld@aonhewitt.com%'   AND msg_addldetails NOT LIKE '%Your document has been received,%'   AND msg_addldetails NOT LIKE '%No valid Expectations found%'   AND msg_addldetails NOT LIKE '%completed successfully.%'   AND msg_addldetails NOT LIKE '%is completed successfully%'   AND msg_addldetails NOT LIKE '%Promoting audit profile%'   AND msg_addldetails NOT LIKE '%Removed expiration date%'   AND msg_addldetails NOT LIKE '%Unable to extract the XML%'   AND msg_addldetails NOT LIKE '%Problems archiving.%'   AND msg_addldetails NOT LIKE '%Missing Custom Parameter%'   AND msg_addldetails NOT LIKE '%getExtractorXML%'   AND msg_addldetails NOT LIKE '%updateAppScheduler%'   AND msg_addldetails NOT LIKE '%getAppScheduler%'   AND msg_addldetails NOT LIKE '%getConnection%'   AND msg_addldetails NOT LIKE '%getDataWarehouse%'   AND msg_addldetails NOT LIKE '%There is insufficient system memory in resource pool%'   AND msg_addldetails NOT LIKE '%Invalid FileID%'   AND msg_addldetails NOT LIKE '%Connection reset%'   AND msg_addldetails NOT LIKE '%Recieved an Empty file from%'   AND msg_addldetails NOT LIKE '%The executeQuery method must return%'   AND msg_expectid NOT LIKE '%NULL%'   order by msg_inserted_dttime desc");
+            //statement.executeUpdate("INSERT INTO TRIAGE (FILEID, STATUS, ERDATE, ERTIME, SERVER, LOCATION, DEVELOPER, FIST) VALUES ('"+fileID+"', '"+status+"', '"+date+"', '"+time+"', '"+server+"', '"+serviceLocation+"', '"+devName+"', '"+FullLine+"')");
+            Boolean insert = true;
+            while(resultSet.next()){
+            	String text = resultSet.getString("msg_fileid");
+            	System.out.println(text);
+            	
+            }
+//            if(insert == true){
+//            	statement.executeUpdate("INSERT INTO TRIAGE (FILEID, STATUS, ERDATE, ERTIME, SERVER, LOCATION, DEVELOPER, STACK, ERROR, FIST) VALUES ('"+fileID+"', '"+status+"', '"+date+"', '"+time+"', '"+server+"', '"+serviceLocation+"', '"+devName+"', '"+stackTrace+"', '"+errorMessage+"', '"+FullLine+"')");	
+//            }
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                statement.close();
+                connection.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+		
 		
 	}
-	
 	
 	public void createErrorLine(String fistUsername, String fistPassword, ArrayList<ListItem> list, WebDriver dr)
 	{
