@@ -24,6 +24,8 @@ public class ListItem {
 	private String service;
 	private String dateTime;
 	private String status;
+	private String resolution;
+	
 	private int erid;
 	private int expectNum;
 
@@ -36,7 +38,7 @@ public class ListItem {
 	private ArrayList <String> startTimeList;
 	private ArrayList <String> endTimeList;
 	
-	public ListItem(String Line,int erid)
+	public ListItem(String Line,int erid, String resolution)
 	{
 		FullLine=Line;
 		
@@ -51,6 +53,7 @@ public class ListItem {
 		stackTrace="";
 		status="";
 		service="";
+		this.resolution = resolution;
 		this.erid=erid;
 		
 		expectNum=0;
@@ -63,7 +66,7 @@ public class ListItem {
 		startTimeList = new ArrayList <String> ();
 		endTimeList = new ArrayList <String> ();
 		
-	    parseLineFromFile(getFullLine(),erid);
+	    parseLineFromFile(getFullLine(),erid,resolution);
 	}
 	
 	public ListItem(String fileID, String dateTime, String server, String stack, String error, String service)
@@ -76,13 +79,14 @@ public class ListItem {
 		setService(service);
 	}
 	
-	private void parseLineFromFile(String Line, int erid)
+	private void parseLineFromFile(String Line, int erid, String resolution)
 	{
 		List<String> list = Lists.newArrayList(Splitter.on("|").split(Line));
 		if(list.size()<=10)
 		{
 		setFileID(list.get(0));
 		setStatus(list.get(1));
+		setResolution(resolution);
 		setErid(erid);
 		setDate(list.get(2));
 		setTime(list.get(3));
@@ -133,6 +137,15 @@ public class ListItem {
 		}
 		}
 	}
+	
+	public String getResolution() {
+		return resolution;
+	}
+
+	public void setResolution(String resolution) {
+		this.resolution = resolution;
+	}
+
 	public int getErid() {
 		return erid;
 	}

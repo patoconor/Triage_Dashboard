@@ -55,7 +55,6 @@ public class MainGUI2 extends JPanel
     private JPanel pCredentials;
     
     DefaultListModel<ListItem> errorList;
-    private JButton bGatherInfo;
     
     private JTextField tfFileID;
     private JTextField tfFailTime;
@@ -69,7 +68,7 @@ public class MainGUI2 extends JPanel
     private JTextField tfExpectStatus;
     private JTextField tfStartTime;
     private JTextField tfEndTime;
-   
+    private JTextArea textArea;
     private JTextField tfServerName;
     private JComboBox<String> cbServerLocationSelect;
     private JButton bServer;
@@ -88,6 +87,7 @@ public class MainGUI2 extends JPanel
     private JDialog dCred;
     String[] textData= new String[5];
     private JLabel lblFistInfo;
+    private JScrollPane scrollPane;
         
     
     
@@ -97,11 +97,12 @@ public class MainGUI2 extends JPanel
     	
     	//list of errors in left pane
     	errorList= new DefaultListModel<>();
-    	
     	setupList();
-    	updater();
+    	
         list = new JList<>(errorList);
+      ;  
         list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        
         list.setSelectedIndex(0);
         list.addListSelectionListener(this);
         list.setCellRenderer(new ListItemRenderer());
@@ -217,13 +218,14 @@ public class MainGUI2 extends JPanel
 	                            "sysdba", "masterkey");
 	            statement = connection.createStatement();
 	            
-	            resultSet = statement.executeQuery("select DISTINCT * from TRIAGE WHERE STATUS != '2' OR STATUS ='2' AND ERDATE = '09/04/2014'");
+	            resultSet = statement.executeQuery("select DISTINCT * from TRIAGE WHERE STATUS != '2' OR STATUS ='2' AND ERDATE = '09/04/2014' order by ERTIME desc");
 	            //statement.executeUpdate("INSERT INTO TRIAGE (FILEID, STATUS, ERDATE, ERTIME, SERVER, LOCATION, DEVELOPER, FIST) VALUES ('"+fileID+"', '"+status+"', '"+date+"', '"+time+"', '"+server+"', '"+serviceLocation+"', '"+devName+"', '"+FullLine+"')");
 	            while(resultSet.next()){
 	            	String text = resultSet.getString("FILEID")+"|"+resultSet.getString("STATUS")+"|"+resultSet.getString("ERDATE")+"|"+resultSet.getString("ERTIME")+"|"+resultSet.getString("SERVER")+"|"+resultSet.getString("LOCATION")+"|"+resultSet.getString("DEVELOPER")+"|"+resultSet.getString("ERROR")+"|"+resultSet.getString("STACK")+"|"+resultSet.getString("FIST");
 	            	int erid = resultSet.getInt("ERRORID");
+	            	String res = resultSet.getString("RESOLUTION");
 	            	System.out.println(text);
-	            	errorList.addElement(new ListItem(text,erid));
+	            	errorList.addElement(new ListItem(text,erid,res));
 	            }
 	        } catch (Exception e) {
 	            e.printStackTrace();
@@ -344,12 +346,15 @@ public class MainGUI2 extends JPanel
     	lErrorHeader.setBounds(250, 0 , 100, 20);
     	pErrorInfo.add(lErrorHeader);
     	
+    	scrollPane = new JScrollPane();
+    	scrollPane.setBounds(18, 29, 560, 185);
+    	pErrorInfo.add(scrollPane);
+    	
     	
     	tpErrorText = new JTextPane();
-    	tpErrorText.setBounds(18, 29, 560, 185);
+    	scrollPane.setViewportView(tpErrorText);
     	tpErrorText.setEditable(false);
     	tpErrorText.setBackground(Color.WHITE);
-    	pErrorInfo.add(tpErrorText);
     	
     	
     	JPanel pActions = new JPanel();
@@ -382,6 +387,7 @@ public class MainGUI2 extends JPanel
 			        public void run() {
 			        	if(getCurrentItem().getExpectNum()!=0)
 			        	{
+			        		System.setProperty("webdriver.chrome.driver", "C://schema_creation/chromedriver.exe");
 			        		WebDriver dr = new ChromeDriver();
 			        		FIST Fdriver = new FIST(sFistUser,sFistPass,sOfficeLocation,false,dr);
 			        		Fdriver.loginConfig();
@@ -400,6 +406,7 @@ public class MainGUI2 extends JPanel
 			        public void run() {
 			        	if(getCurrentItem().getExpectNum()!=0)
 			        	{
+			        		System.setProperty("webdriver.chrome.driver", "C://schema_creation/chromedriver.exe");
 			        		WebDriver dr = new ChromeDriver();
 			        		FIST Fdriver = new FIST(sFistUser,sFistPass,sOfficeLocation,false,dr);
 			        		Fdriver.loginConfig();
@@ -444,11 +451,6 @@ public class MainGUI2 extends JPanel
         JButton btnNewButton = new JButton("Change Status");
         btnNewButton.setBounds(329, 404, 127, 23);
         errorViewPanel.add(btnNewButton);
-        
-        bGatherInfo = new JButton();
-        bGatherInfo.setBounds(624, 446, 280, 40);
-        errorViewPanel.add(bGatherInfo);
-        bGatherInfo.setText("Gather Info");
         JLabel lServerName = new JLabel("Server Name:");
         lServerName.setForeground(Color.BLUE);
         lServerName.setFont(new Font("Tahoma", Font.BOLD, 11));
@@ -612,10 +614,19 @@ public class MainGUI2 extends JPanel
 		lblFistInfo.setFont(new Font("Tahoma", Font.BOLD, 16));
 		lblFistInfo.setBounds(251, 222, 79, 40);
 		errorViewPanel.add(lblFistInfo);
+		
+		textArea = new JTextArea();
+		textArea.setBounds(647, 457, 231, 105);
+		errorViewPanel.add(textArea);
+		
+		JLabel lblResolution = new JLabel("Resolution");
+		lblResolution.setBounds(734, 432, 67, 14);
+		errorViewPanel.add(lblResolution);
 		bViewExpectations.addActionListener(new ActionListener() {
 		  public void actionPerformed(ActionEvent evt) {			  
 			  new Thread(new Runnable() {
 			        public void run() {
+			        	System.setProperty("webdriver.chrome.driver", "C://schema_creation/chromedriver.exe");
 			        	WebDriver dr = new ChromeDriver();
 			        	FIST Fdriver = new FIST(sFistUser,sFistPass,sOfficeLocation,false,dr);
 			        	Fdriver.loginConfig();
@@ -638,53 +649,6 @@ public class MainGUI2 extends JPanel
 			        	Server.pw=sServerPass;			        	
 			        	Server.serverLogin(getCurrentItem().getServer(),cbServerLocationSelect.getSelectedIndex());
 			        	
-			            }}).start();}});
-        bGatherInfo.addActionListener(new ActionListener() {
-		  public void actionPerformed(ActionEvent evt) {			  
-			  new Thread(new Runnable() {
-			        public void run() {
-			        	list.removeAll();
-			        	errorList.clear();
-			        	
-			        	
-			        	errorList= new DefaultListModel<>();
-			        	
-			        	setupList();
-			        	
-			            list = new JList<>(errorList);
-			            list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-			            list.setSelectedIndex(0);
-			            list.addListSelectionListener(null);
-			            list.setCellRenderer(new ListItemRenderer());
-			            
-			            //right panel for viewing error details
-			            errorViewPanel = new JPanel();
-			            errorViewPanel.setLayout(null);
-			            errorViewPanel.setPreferredSize(new Dimension(899, 559));
-			            
-			            setupErrorPanel();
-			            populateErrorPanel();
-						try {
-							window = new MainGUI2();
-						} catch (ClassNotFoundException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						} catch (InstantiationException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						} catch (IllegalAccessException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						} catch (UnsupportedLookAndFeelException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
-			            frame.getContentPane().add(window.getPane());
-			       //     frame.setMinimumSize(new Dimension(500, 300));
-
-			            //Display the window.
-			            frame.pack();
-			            frame.setVisible(true);
 			            }}).start();}});
         btnNewButton.addMouseListener(new MouseAdapter() {
         	@Override
@@ -801,10 +765,12 @@ public class MainGUI2 extends JPanel
         	tfServiceName.setCaretPosition(0);
         	tfFailTime.setText("   |   ");
         	tfServerName.setText("");
+        	textArea.setText("");
         	String[] DateArray = new String[0];
     	}
     	if(errorList.size()>0){
     	tfFileID.setText(getCurrentItem().getFileID());
+    	textArea.setText(getCurrentItem().getResolution());
     	tfDeveloperName.setText(getCurrentItem().getDevName());
     	tfDeveloperName.setCaretPosition(0);
     	tfServiceName.setText(getCurrentItem().getServiceLocation());
@@ -814,14 +780,14 @@ public class MainGUI2 extends JPanel
     	String[] DateArray = new String[getCurrentItem().getExpectDateList().size()];
     	DateArray = getCurrentItem().getExpectDateList().toArray(DateArray);
     	cbExpectationSelect.setModel(new DefaultComboBoxModel<String>(DateArray));
-    	if(getCurrentItem().isGatheringInfo()==false)
-    	{
-    		bGatherInfo.setEnabled(true);
-    	}
-    	else
-    	{
-    		bGatherInfo.setEnabled(false);
-    	}
+//    	if(getCurrentItem().isGatheringInfo()==false)
+//    	{
+//    		bGatherInfo.setEnabled(true);
+//    	}
+//    	else
+//    	{
+//    		bGatherInfo.setEnabled(false);
+//    	}
     	
     	if(getCurrentItem().getExpectNum()==0)
     	{
@@ -902,14 +868,14 @@ public class MainGUI2 extends JPanel
         cbOffice.setBounds(10, 10 + 9*yShift, 200, 20);
         String [] officeStrings = {"Winston Salem","Hunt Valley"};
         cbOffice.setModel(new DefaultComboBoxModel<String>(officeStrings));
-        if(sOfficeLocation.equals("Winston Salem"))
-        {
-        	cbOffice.setSelectedIndex(0);
-        }
-        else if (sOfficeLocation.equals("Hunt Valley"))
-        {
-        	cbOffice.setSelectedIndex(1);
-        }
+//        if(sOfficeLocation.equals("Winston Salem"))
+//        {
+//        	cbOffice.setSelectedIndex(0);
+//        }
+//        else if (sOfficeLocation.equals("Hunt Valley"))
+//        {
+//        	cbOffice.setSelectedIndex(1);
+//        }
         JButton bSave = new JButton("Save");
         bSave.setBounds(10, 20 + 10*yShift, 200, 20);
         bSave.addActionListener(new ActionListener() {
@@ -1037,7 +1003,7 @@ public class MainGUI2 extends JPanel
         
     }
     
-    private void createAndShowGUI2() throws ClassNotFoundException, InstantiationException, IllegalAccessException, UnsupportedLookAndFeelException {
+    private static void createAndShowGUI2() throws ClassNotFoundException, InstantiationException, IllegalAccessException, UnsupportedLookAndFeelException {
     	
     	frame.getContentPane().removeAll();
     	window = new MainGUI2();
@@ -1055,6 +1021,7 @@ public class MainGUI2 extends JPanel
             public void run() {
                 try {
 					createAndShowGUI();
+					updater();
 				} catch (ClassNotFoundException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -1116,14 +1083,28 @@ public class MainGUI2 extends JPanel
 	   	getCurrentItem().getEndTimeList().clear();
 	   	getCurrentItem().getAnalystNameList().clear();
    }
-   public void updater(){
+   public static void updater(){
 	   ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor();
 		exec.scheduleAtFixedRate(new Runnable() {
 			//This method runs once every second, it is used to set the progress bars, automate FIST deployment, and automate Maestro automation
 		  @Override
 		  public void run() {
+			  try {
+				createAndShowGUI2();
+			} catch (ClassNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (InstantiationException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IllegalAccessException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (UnsupportedLookAndFeelException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		  }
 		}, 0, 15, TimeUnit.SECONDS);
    }
-
 }

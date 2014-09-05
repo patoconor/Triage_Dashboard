@@ -221,7 +221,7 @@ public class MainGUI extends JPanel
 	            	String text = resultSet.getString("FILEID")+"|"+resultSet.getString("STATUS")+"|"+resultSet.getString("ERDATE")+"|"+resultSet.getString("ERTIME")+"|"+resultSet.getString("SERVER")+"|"+resultSet.getString("LOCATION")+"|"+resultSet.getString("DEVELOPER")+"|"+resultSet.getString("ERROR")+"|"+resultSet.getString("STACK")+"|"+resultSet.getString("FIST");
 	            	int erid = resultSet.getInt("ERRORID");
 	            	System.out.println(text);
-	            	errorList.addElement(new ListItem(text,erid));
+	            	errorList.addElement(new ListItem(text,erid,""));
 	            }
 	        } catch (Exception e) {
 	            e.printStackTrace();
