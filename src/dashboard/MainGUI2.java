@@ -40,7 +40,7 @@ public class MainGUI2 extends JPanel
 	private String sServerUser;
 	private String sServerPass;
 	private String sOfficeLocation;
-	
+	private JScrollPane errorListScroll;
 	private static MainGUI2 window;
 	private JSplitPane splitPane;
     private JSplitPane splitPaneBottom;
@@ -158,7 +158,7 @@ public class MainGUI2 extends JPanel
 			            }}).start();}});
         
         //left pane
-        JScrollPane errorListScroll = new JScrollPane(list);
+        errorListScroll = new JScrollPane(list);
         //right pane
         JScrollPane errorViewScroll = new JScrollPane(errorViewPanel);
         
@@ -175,7 +175,7 @@ public class MainGUI2 extends JPanel
         splitPaneBottom.setResizeWeight(1);
     
         //Provide a preferred size for the split pane.
-        splitPane.setPreferredSize(new Dimension(1123, 570));
+        splitPane.setPreferredSize(new Dimension(1123, 700));
         
         
 	    credCheck();
@@ -217,7 +217,7 @@ public class MainGUI2 extends JPanel
 	                            "sysdba", "masterkey");
 	            statement = connection.createStatement();
 	            
-	            resultSet = statement.executeQuery("select DISTINCT * from TRIAGE WHERE STATUS != '2' OR STATUS ='2' AND ERDATE = '09/02/2014'");
+	            resultSet = statement.executeQuery("select DISTINCT * from TRIAGE WHERE STATUS != '2' OR STATUS ='2' AND ERDATE = '09/04/2014'");
 	            //statement.executeUpdate("INSERT INTO TRIAGE (FILEID, STATUS, ERDATE, ERTIME, SERVER, LOCATION, DEVELOPER, FIST) VALUES ('"+fileID+"', '"+status+"', '"+date+"', '"+time+"', '"+server+"', '"+serviceLocation+"', '"+devName+"', '"+FullLine+"')");
 	            while(resultSet.next()){
 	            	String text = resultSet.getString("FILEID")+"|"+resultSet.getString("STATUS")+"|"+resultSet.getString("ERDATE")+"|"+resultSet.getString("ERTIME")+"|"+resultSet.getString("SERVER")+"|"+resultSet.getString("LOCATION")+"|"+resultSet.getString("DEVELOPER")+"|"+resultSet.getString("ERROR")+"|"+resultSet.getString("STACK")+"|"+resultSet.getString("FIST");
@@ -334,7 +334,7 @@ public class MainGUI2 extends JPanel
         
     	
         JPanel pErrorInfo = new JPanel();
-        pErrorInfo.setBounds(0, 446, 601, 301);
+        pErrorInfo.setBounds(0, 446, 601, 241);
         pErrorInfo.setLayout(null);
         pErrorInfo.setBorder(BorderFactory.createLineBorder(Color.BLACK));
     	errorViewPanel.add(pErrorInfo);
@@ -346,7 +346,7 @@ public class MainGUI2 extends JPanel
     	
     	
     	tpErrorText = new JTextPane();
-    	tpErrorText.setBounds(18, 29, 580, 270);
+    	tpErrorText.setBounds(18, 29, 560, 185);
     	tpErrorText.setEditable(false);
     	tpErrorText.setBackground(Color.WHITE);
     	pErrorInfo.add(tpErrorText);
@@ -701,9 +701,25 @@ public class MainGUI2 extends JPanel
         	                            "sysdba", "masterkey");
         	            statement = connection.createStatement();
         	            statement.executeUpdate("UPDATE TRIAGE set STATUS = '1'where ERRORID = "+getCurrentItem().getErid()+"");
+        	            
         			} catch (Exception e1) {
         	            e1.printStackTrace();
         	        }
+        			try {
+						createAndShowGUI2();
+					} catch (ClassNotFoundException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					} catch (InstantiationException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					} catch (IllegalAccessException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					} catch (UnsupportedLookAndFeelException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
         		}
         		if(comboBox.getSelectedItem().toString().equals("Complete")){
         			Connection connection = null;
@@ -717,10 +733,24 @@ public class MainGUI2 extends JPanel
         	                            "sysdba", "masterkey");
         	            statement = connection.createStatement();
         	            statement.executeUpdate("UPDATE TRIAGE set STATUS = '2'where ERRORID = "+getCurrentItem().getErid()+"");
-        	            
         			} catch (Exception e1) {
         	            e1.printStackTrace();
         	        }
+        			try {
+						createAndShowGUI2();
+					} catch (ClassNotFoundException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					} catch (InstantiationException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					} catch (IllegalAccessException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					} catch (UnsupportedLookAndFeelException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
         		}
         	//	awd
         	}
@@ -1001,9 +1031,21 @@ public class MainGUI2 extends JPanel
    //     frame.setMinimumSize(new Dimension(500, 300));
 
         //Display the window.
+        
         frame.pack();
         frame.setVisible(true);
         
+    }
+    
+    private void createAndShowGUI2() throws ClassNotFoundException, InstantiationException, IllegalAccessException, UnsupportedLookAndFeelException {
+    	
+    	frame.getContentPane().removeAll();
+    	window = new MainGUI2();
+        frame.getContentPane().add(window.getPane());
+
+        //Display the window.
+        frame.pack();
+        frame.setVisible(true);
     }
 
     public static void main(String[] args) {

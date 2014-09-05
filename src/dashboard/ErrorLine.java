@@ -66,8 +66,17 @@ public class ErrorLine {
 		Connection connection = null;
         ResultSet resultSet = null;
         Statement statement = null;
+        Connection connection2 = null;
+        ResultSet resultSet2 = null;
+        Statement statement2 = null;
 		try {
-            String connectionURL = "jdbc:sqlserver://L4DWIPDS011.hewitt.com:13163;" + "databaseName=FileConfig;user=poconor;password=Spektor29!;";
+            connection2 = DriverManager
+                    .getConnection(
+                            "jdbc:firebirdsql://localhost:3050/C:/database/BASE.fdb",
+                            "sysdba", "masterkey");
+            statement2 = connection2.createStatement();
+            resultSet2 = statement2.executeQuery("select DISTINCT * from TRIAGE");
+            String connectionURL = "jdbc:jtds:sqlserver://L4DWIPDS011.hewitt.com:13163/;" + "databaseName=FileConfig;user=poconor;password=Spektor27!;";
             connection = DriverManager
                     .getConnection(connectionURL);
             statement = connection.createStatement();
@@ -75,9 +84,15 @@ public class ErrorLine {
             //statement.executeUpdate("INSERT INTO TRIAGE (FILEID, STATUS, ERDATE, ERTIME, SERVER, LOCATION, DEVELOPER, FIST) VALUES ('"+fileID+"', '"+status+"', '"+date+"', '"+time+"', '"+server+"', '"+serviceLocation+"', '"+devName+"', '"+FullLine+"')");
             Boolean insert = true;
             while(resultSet.next()){
-            	String text = resultSet.getString("msg_fileid");
-            	System.out.println(text);
-            	
+            	String server = "";
+            	if(resultSet.getString("msg_addldetails").contains("L4DWIPAP")){
+            		server = resultSet.getString("msg_addldetails").substring(resultSet.getString("msg_addldetails").indexOf("L4DWIPAP"),resultSet.getString("msg_addldetails").indexOf("L4DWIPAP")+12);
+            		server.replaceAll("\r\n", "");
+            	}
+            	//String text = server+"|"+resultSet.getString("msg_fileid")+"|"+resultSet.getString("msg_addldetails")+"|"+resultSet.getString("msg_inserted_dttime").split(" ")[0].replaceAll("/", "-")+"|"+resultSet.getString("msg_inserted_dttime").split(" ")[1].split(":")[0]+":"+resultSet.getString("msg_inserted_dttime").split(" ")[1].split(":")[1];
+            	//System.out.println(text);
+            	statement2.executeUpdate("INSERT INTO TRIAGE (FILEID, ERDATE, ERTIME, SERVER,ERROR) VALUES ('"+resultSet.getString("msg_fileid")+"', '"+resultSet.getString("msg_inserted_dttime").split(" ")[0].replaceAll("/", "-")+"', '"+resultSet.getString("msg_inserted_dttime").split(" ")[1].split(":")[0]+":"+resultSet.getString("msg_inserted_dttime").split(" ")[1].split(":")[1]+"', '"+server+"', '"+resultSet.getString("msg_addldetails")+"')");	
+          
             }
 //            if(insert == true){
 //            	statement.executeUpdate("INSERT INTO TRIAGE (FILEID, STATUS, ERDATE, ERTIME, SERVER, LOCATION, DEVELOPER, STACK, ERROR, FIST) VALUES ('"+fileID+"', '"+status+"', '"+date+"', '"+time+"', '"+server+"', '"+serviceLocation+"', '"+devName+"', '"+stackTrace+"', '"+errorMessage+"', '"+FullLine+"')");	
