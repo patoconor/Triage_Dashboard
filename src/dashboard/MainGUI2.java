@@ -76,8 +76,6 @@ public class MainGUI2 extends JPanel
     private JComboBox<String> cbExpectationSelect;
     private JButton bViewExpectations;
     
-    private JTextPane tpErrorText;
-    
     private JButton bLookingIntoIt;
     private JButton bReplyInFist;
     private JTextPane tpRecommendedAction;
@@ -86,8 +84,8 @@ public class MainGUI2 extends JPanel
     
     private JDialog dCred;
     String[] textData= new String[5];
-    private JLabel lblFistInfo;
-    private JScrollPane scrollPane;
+    private JLabel lblTriageDashboard;
+    private JTextArea textArea_1;
         
     
     
@@ -346,15 +344,12 @@ public class MainGUI2 extends JPanel
     	lErrorHeader.setBounds(250, 0 , 100, 20);
     	pErrorInfo.add(lErrorHeader);
     	
-    	scrollPane = new JScrollPane();
-    	scrollPane.setBounds(18, 29, 560, 185);
-    	pErrorInfo.add(scrollPane);
-    	
-    	
-    	tpErrorText = new JTextPane();
-    	scrollPane.setViewportView(tpErrorText);
-    	tpErrorText.setEditable(false);
-    	tpErrorText.setBackground(Color.WHITE);
+    	textArea_1 = new JTextArea();
+    	textArea_1.setFont(new Font("Tahoma", Font.PLAIN, 11));
+    	textArea_1.setLineWrap(true);
+    	textArea_1.setBounds(22, 31, 558, 183);
+    	textArea_1.setWrapStyleWord(true);
+    	pErrorInfo.add(textArea_1);
     	
     	
     	JPanel pActions = new JPanel();
@@ -440,180 +435,170 @@ public class MainGUI2 extends JPanel
         JLabel lblStatus = new JLabel("TRIAGE STATUS:");
         lblStatus.setForeground(new Color(255, 0, 0));
         lblStatus.setFont(new Font("Tahoma", Font.BOLD, 11));
-        lblStatus.setBounds(103, 411, 110, 14);
+        lblStatus.setBounds(269, 373, 110, 14);
         errorViewPanel.add(lblStatus);
         
         final JComboBox comboBox = new JComboBox();
-        comboBox.setBounds(209, 407, 110, 20);
+        comboBox.setBounds(209, 399, 110, 20);
         errorViewPanel.add(comboBox);
         comboBox.setModel(new DefaultComboBoxModel(new String[] {"In Progress", "Complete"}));
         
         JButton btnNewButton = new JButton("Change Status");
-        btnNewButton.setBounds(329, 404, 127, 23);
+        btnNewButton.setBounds(329, 398, 127, 20);
         errorViewPanel.add(btnNewButton);
         JLabel lServerName = new JLabel("Server Name:");
         lServerName.setForeground(Color.BLUE);
         lServerName.setFont(new Font("Tahoma", Font.BOLD, 11));
-        lServerName.setBounds(27, 125, 79, 20);
+        lServerName.setBounds(29, 134, 79, 20);
         errorViewPanel.add(lServerName);
         
     	tfServerName = new JTextField();
-    	tfServerName.setBounds(109, 126, 180, 20);
+    	tfServerName.setBounds(111, 134, 180, 20);
     	errorViewPanel.add(tfServerName);
     	tfServerName.setEditable(false);
     	tfServerName.setBackground(Color.WHITE);
     	
     	
     	cbServerLocationSelect = new JComboBox <String> ();
-    	cbServerLocationSelect.setBounds(155, 164, 150, 20);
+    	cbServerLocationSelect.setBounds(18, 166, 150, 20);
     	errorViewPanel.add(cbServerLocationSelect);
     	cbServerLocationSelect.setModel(new DefaultComboBoxModel<String>(serverStrings));
     	
     	
     	
         bServer = new JButton();
-        bServer.setBounds(318, 164, 110, 20);
+        bServer.setBounds(181, 166, 110, 20);
         errorViewPanel.add(bServer);
         bServer.setText("View");
         
         tfFileID = new JTextField();
-        tfFileID.setBounds(109, 68, 50, 20);
+        tfFileID.setBounds(299, 57, 80, 20);
         errorViewPanel.add(tfFileID);
         tfFileID.setEditable(false);
         tfFileID.setBackground(Color.WHITE);
-        JLabel lFileID = new JLabel("File ID:");
-        lFileID.setForeground(Color.BLUE);
+        JLabel lFileID = new JLabel("FILE ID:");
+        lFileID.setForeground(Color.BLACK);
         lFileID.setFont(new Font("Tahoma", Font.BOLD, 11));
-        lFileID.setBounds(64, 67, 39, 20);
+        lFileID.setBounds(250, 55, 51, 20);
         errorViewPanel.add(lFileID);
         JLabel lFailTime = new JLabel("Error Date/Time:");
         lFailTime.setForeground(Color.BLUE);
         lFailTime.setFont(new Font("Tahoma", Font.BOLD, 11));
-        lFailTime.setBounds(7, 95, 109, 20);
+        lFailTime.setBounds(9, 104, 109, 20);
         errorViewPanel.add(lFailTime);
         
         
 		
 		tfFailTime = new JTextField();
-		tfFailTime.setBounds(109, 97, 180, 20);
+		tfFailTime.setBounds(111, 104, 180, 20);
 		errorViewPanel.add(tfFailTime);
 		tfFailTime.setEditable(false);
 		tfFailTime.setBackground(Color.WHITE);
 		JLabel lServiceName = new JLabel("Location:");
 		lServiceName.setForeground(Color.BLUE);
 		lServiceName.setFont(new Font("Tahoma", Font.BOLD, 11));
-		lServiceName.setBounds(339, 126, 61, 20);
+		lServiceName.setBounds(341, 163, 61, 20);
 		errorViewPanel.add(lServiceName);
 		
         
 		
 		tfServiceName = new JTextField();
-		tfServiceName.setBounds(400, 126, 180, 20);
+		tfServiceName.setBounds(402, 163, 180, 20);
 		errorViewPanel.add(tfServiceName);
 		tfServiceName.setEditable(false);
 		tfServiceName.setBackground(Color.WHITE);
 		
 		tfDeveloperName = new JTextField();
-		tfDeveloperName.setBounds(400, 97, 180, 20);
+		tfDeveloperName.setBounds(402, 134, 180, 20);
 		errorViewPanel.add(tfDeveloperName);
 		tfDeveloperName.setEditable(false);
 		tfDeveloperName.setBackground(Color.WHITE);
 		JLabel lDeveloperName = new JLabel("Developer:");
 		lDeveloperName.setForeground(Color.BLUE);
 		lDeveloperName.setFont(new Font("Tahoma", Font.BOLD, 11));
-		lDeveloperName.setBounds(331, 97, 100, 20);
+		lDeveloperName.setBounds(333, 134, 100, 20);
 		errorViewPanel.add(lDeveloperName);
 		JLabel lExpectationSelect = new JLabel("Pick Expectation:");
 		lExpectationSelect.setForeground(new Color(0, 128, 0));
 		lExpectationSelect.setFont(new Font("Tahoma", Font.BOLD, 11));
-		lExpectationSelect.setBounds(8, 298, 99, 20);
+		lExpectationSelect.setBounds(9, 260, 99, 20);
 		errorViewPanel.add(lExpectationSelect);
 		
 		
 		cbExpectationSelect = new JComboBox <String> ();
-		cbExpectationSelect.setBounds(110, 298, 180, 20);
+		cbExpectationSelect.setBounds(111, 260, 180, 20);
 		errorViewPanel.add(cbExpectationSelect);
 		
 		bViewExpectations = new JButton();
-		bViewExpectations.setBounds(110, 358, 180, 20);
+		bViewExpectations.setBounds(111, 320, 180, 20);
 		errorViewPanel.add(bViewExpectations);
 		bViewExpectations.setText("Open Expectations Page");
 		
         tfAnalystName = new JTextField();
-        tfAnalystName.setBounds(400, 68, 180, 20);
+        tfAnalystName.setBounds(402, 104, 180, 20);
         errorViewPanel.add(tfAnalystName);
         tfAnalystName.setEditable(false);
         tfAnalystName.setBackground(Color.WHITE);
         JLabel lAnalystName = new JLabel("Analyst:");
         lAnalystName.setForeground(Color.BLUE);
         lAnalystName.setFont(new Font("Tahoma", Font.BOLD, 11));
-        lAnalystName.setBounds(345, 68, 100, 20);
+        lAnalystName.setBounds(347, 104, 100, 20);
         errorViewPanel.add(lAnalystName);
         
     	tfExpectationID = new JTextField();
-    	tfExpectationID.setBounds(303, 263, 80, 20);
+    	tfExpectationID.setBounds(300, 225, 80, 20);
     	errorViewPanel.add(tfExpectationID);
     	tfExpectationID.setEditable(false);
     	tfExpectationID.setBackground(Color.WHITE);
-    	JLabel lExpectationID = new JLabel("Expectation ID:");
-    	lExpectationID.setForeground(new Color(0, 128, 0));
-    	lExpectationID.setFont(new Font("Tahoma", Font.BOLD | Font.ITALIC, 11));
-    	lExpectationID.setBounds(201, 264, 100, 20);
+    	JLabel lExpectationID = new JLabel("EXPECTATION ID:");
+    	lExpectationID.setForeground(Color.BLACK);
+    	lExpectationID.setFont(new Font("Tahoma", Font.BOLD, 11));
+    	lExpectationID.setBounds(202, 226, 100, 20);
     	errorViewPanel.add(lExpectationID);
     	JLabel lExpectStatus = new JLabel("Status:");
     	lExpectStatus.setForeground(new Color(0, 128, 0));
     	lExpectStatus.setFont(new Font("Tahoma", Font.BOLD, 11));
-    	lExpectStatus.setBounds(352, 298, 46, 20);
+    	lExpectStatus.setBounds(353, 260, 46, 20);
     	errorViewPanel.add(lExpectStatus);
     	
     	tfExpectStatus = new JTextField();
-    	tfExpectStatus.setBounds(400, 298, 180, 20);
+    	tfExpectStatus.setBounds(401, 260, 180, 20);
     	errorViewPanel.add(tfExpectStatus);
     	tfExpectStatus.setEditable(false);
     	tfExpectStatus.setBackground(Color.WHITE);
     	JLabel lEnvironment = new JLabel("Environment:");
     	lEnvironment.setForeground(new Color(0, 128, 0));
     	lEnvironment.setFont(new Font("Tahoma", Font.BOLD, 11));
-    	lEnvironment.setBounds(28, 326, 79, 20);
+    	lEnvironment.setBounds(29, 288, 79, 20);
     	errorViewPanel.add(lEnvironment);
     	
 		tfEnvironment = new JTextField();
-		tfEnvironment.setBounds(110, 326, 180, 20);
+		tfEnvironment.setBounds(111, 288, 180, 20);
 		errorViewPanel.add(tfEnvironment);
 		tfEnvironment.setEditable(false);
 		tfEnvironment.setBackground(Color.WHITE);
 		JLabel lEndTime = new JLabel("End Time:");
 		lEndTime.setForeground(new Color(0, 128, 0));
 		lEndTime.setFont(new Font("Tahoma", Font.BOLD, 11));
-		lEndTime.setBounds(337, 358, 60, 20);
+		lEndTime.setBounds(338, 320, 60, 20);
 		errorViewPanel.add(lEndTime);
 		JLabel lStartTime = new JLabel("Start Time:");
 		lStartTime.setForeground(new Color(0, 128, 0));
 		lStartTime.setFont(new Font("Tahoma", Font.BOLD, 11));
-		lStartTime.setBounds(329, 326, 82, 20);
+		lStartTime.setBounds(330, 288, 82, 20);
 		errorViewPanel.add(lStartTime);
 		
 		tfStartTime = new JTextField();
-		tfStartTime.setBounds(400, 326, 180, 20);
+		tfStartTime.setBounds(401, 288, 180, 20);
 		errorViewPanel.add(tfStartTime);
 		tfStartTime.setEditable(false);
 		tfStartTime.setBackground(Color.WHITE);
 		
 		tfEndTime = new JTextField();
-		tfEndTime.setBounds(400, 358, 180, 20);
+		tfEndTime.setBounds(401, 320, 180, 20);
 		errorViewPanel.add(tfEndTime);
 		tfEndTime.setEditable(false);
 		tfEndTime.setBackground(Color.WHITE);
-		
-		JLabel lblFileInfo = new JLabel("File Info");
-		lblFileInfo.setFont(new Font("Tahoma", Font.BOLD, 16));
-		lblFileInfo.setBounds(254, 20, 76, 37);
-		errorViewPanel.add(lblFileInfo);
-		
-		lblFistInfo = new JLabel("FIST Info");
-		lblFistInfo.setFont(new Font("Tahoma", Font.BOLD, 16));
-		lblFistInfo.setBounds(251, 222, 79, 40);
-		errorViewPanel.add(lblFistInfo);
 		
 		textArea = new JTextArea();
 		textArea.setBounds(647, 457, 231, 105);
@@ -622,6 +607,11 @@ public class MainGUI2 extends JPanel
 		JLabel lblResolution = new JLabel("Resolution");
 		lblResolution.setBounds(734, 432, 67, 14);
 		errorViewPanel.add(lblResolution);
+		
+		lblTriageDashboard = new JLabel("Triage Dashboard");
+		lblTriageDashboard.setFont(new Font("Franklin Gothic Medium", Font.BOLD, 18));
+		lblTriageDashboard.setBounds(217, 11, 167, 20);
+		errorViewPanel.add(lblTriageDashboard);
 		bViewExpectations.addActionListener(new ActionListener() {
 		  public void actionPerformed(ActionEvent evt) {			  
 			  new Thread(new Runnable() {
@@ -803,8 +793,8 @@ public class MainGUI2 extends JPanel
         	cbExpectationSelect.setSelectedIndex(getCurrentItem().getSelectedExpectNum());
     	}
     	selectExpectation();
-    	
-    	tpErrorText.setText(getCurrentItem().getErrorMessage()+"\n\n"+getCurrentItem().getStackTrace());
+    	textArea_1.setText(getCurrentItem().getErrorMessage()+"\n\n"+getCurrentItem().getStackTrace());
+    	//tpErrorText.setText(getCurrentItem().getErrorMessage()+"\n\n"+getCurrentItem().getStackTrace());
     	
     }
     }
@@ -1047,8 +1037,12 @@ public class MainGUI2 extends JPanel
 		 */
         public Component getListCellRendererComponent(JList<? extends ListItem> list, ListItem item, int index, boolean isSelected, boolean cellHasFocus) {
         	setOpaque(true);
-        	
+        	if(item.getFileID().equals("?")){
+        		setText("    "+item.getFileID() + "     | " +item.getTime() + " | " + item.getDate());
+        	}
+        	else{
             setText(item.getFileID() + " | " +item.getTime() + " | " + item.getDate());
+        	}
             if(item.getStatus().equals("2"))
             {
             	setBackground(Color.GREEN);
