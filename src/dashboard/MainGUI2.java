@@ -22,6 +22,8 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -49,7 +51,7 @@ public class MainGUI2 extends JPanel
     private JButton bChangeCredentials;
 	private JButton bOptions;
 	
-    
+    private static String daysPast;
     private JList<ListItem> list;
     private JPanel errorViewPanel;
     private JPanel pCredentials;
@@ -61,7 +63,7 @@ public class MainGUI2 extends JPanel
     private JTextField tfServiceName;
     private JTextField tfDeveloperName;
     
-    
+    private JComboBox<String> comboBox_1;
     private JTextField tfExpectationID;
     private JTextField tfEnvironment;
     private JTextField tfAnalystName;
@@ -80,9 +82,10 @@ public class MainGUI2 extends JPanel
     private JButton bReplyInFist;
     private JTextPane tpRecommendedAction;
     private JButton bTakeAction;
+    private String dateSelect;
+    private static String currentDate;
     
-    
-    private JDialog dCred;
+	private JDialog dCred;
     String[] textData= new String[5];
     private JLabel lblTriageDashboard;
     private JTextArea textArea_1;
@@ -98,10 +101,9 @@ public class MainGUI2 extends JPanel
     	setupList();
     	
         list = new JList<>(errorList);
+        list.setSelectedIndex(0);
       ;  
         list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        
-        list.setSelectedIndex(0);
         list.addListSelectionListener(this);
         list.setCellRenderer(new ListItemRenderer());
         
@@ -202,7 +204,7 @@ public class MainGUI2 extends JPanel
     	*/
     	BufferedReader br;
     	String line;
-    	
+    	System.out.println(daysPast);
     	
     	Connection connection = null;
         ResultSet resultSet = null;
@@ -215,8 +217,14 @@ public class MainGUI2 extends JPanel
 	                            "jdbc:firebirdsql://NUSDD2F0J6M1:3050/C:/database/BASE.fdb",
 	                            "sysdba", "masterkey");
 	            statement = connection.createStatement();
-	            
-	            resultSet = statement.executeQuery("select DISTINCT * from TRIAGE WHERE STATUS != '2' OR STATUS ='2' AND ERDATE = '09/04/2014' order by ERTIME desc");
+	            Date d = new Date();
+            	Calendar c = Calendar.getInstance();
+                c.setTime(d);
+                c.add(Calendar.DATE, -Integer.parseInt(daysPast));
+                d.setTime( c.getTime().getTime() );
+                DateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy");
+                setDateSelect(dateFormat.format(d));
+	            resultSet = statement.executeQuery("select DISTINCT * from TRIAGE WHERE ERDATE >= '"+dateSelect+"' order by ERDATE desc, ERTIME desc");
 	            //statement.executeUpdate("INSERT INTO TRIAGE (FILEID, STATUS, ERDATE, ERTIME, SERVER, LOCATION, DEVELOPER, FIST) VALUES ('"+fileID+"', '"+status+"', '"+date+"', '"+time+"', '"+server+"', '"+serviceLocation+"', '"+devName+"', '"+FullLine+"')");
 	            while(resultSet.next()){
 	            	String text = resultSet.getString("FILEID")+"|"+resultSet.getString("STATUS")+"|"+resultSet.getString("ERDATE")+"|"+resultSet.getString("ERTIME")+"|"+resultSet.getString("SERVER")+"|"+resultSet.getString("LOCATION")+"|"+resultSet.getString("DEVELOPER")+"|"+resultSet.getString("ERROR")+"|"+resultSet.getString("STACK")+"|"+resultSet.getString("FIST");
@@ -612,6 +620,42 @@ public class MainGUI2 extends JPanel
 		lblTriageDashboard.setFont(new Font("Franklin Gothic Medium", Font.BOLD, 18));
 		lblTriageDashboard.setBounds(217, 11, 167, 20);
 		errorViewPanel.add(lblTriageDashboard);
+		
+		JLabel lblViewPastDays = new JLabel("View Past Days:");
+		lblViewPastDays.setFont(new Font("Tahoma", Font.BOLD, 11));
+		lblViewPastDays.setBounds(18, 58, 98, 14);
+		errorViewPanel.add(lblViewPastDays);
+		
+		comboBox_1 = new JComboBox();
+		comboBox_1.setModel(new DefaultComboBoxModel(new String[] {"0", "1", "2", "3"}));
+		comboBox_1.setBounds(119, 55, 40, 20);
+		errorViewPanel.add(comboBox_1);
+		
+		JButton btnGo = new JButton("Go!");
+		btnGo.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				
+				daysPast = comboBox_1.getSelectedItem().toString();
+				try {
+					createAndShowGUI2();
+				} catch (ClassNotFoundException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				} catch (InstantiationException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				} catch (IllegalAccessException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				} catch (UnsupportedLookAndFeelException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+			}
+		});
+		btnGo.setBounds(169, 54, 51, 23);
+		errorViewPanel.add(btnGo);
 		bViewExpectations.addActionListener(new ActionListener() {
 		  public void actionPerformed(ActionEvent evt) {			  
 			  new Thread(new Runnable() {
@@ -1010,6 +1054,7 @@ public class MainGUI2 extends JPanel
         javax.swing.SwingUtilities.invokeLater(new Runnable() {
             public void run() {
                 try {
+                	daysPast = "0";
 					createAndShowGUI();
 					updater();
 				} catch (ClassNotFoundException e) {
@@ -1066,7 +1111,13 @@ public class MainGUI2 extends JPanel
             return this;
         }
    }
-    
+    public String getDateSelect() {
+		return dateSelect;
+	}
+
+	public void setDateSelect(String dateSelect) {
+		this.dateSelect = dateSelect;
+	}
    public void clearExpectations()
    {
 	    getCurrentItem().getEnvironmentList().clear();
@@ -1084,6 +1135,7 @@ public class MainGUI2 extends JPanel
 		  @Override
 		  public void run() {
 			  try {
+				 
 				createAndShowGUI2();
 			} catch (ClassNotFoundException e) {
 				// TODO Auto-generated catch block

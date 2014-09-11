@@ -4,7 +4,10 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -49,65 +52,116 @@ public class ErrorLine {
 	private ArrayList <String> startTimeList;
 	private ArrayList <String> endTimeList;
 	public static void main (String[] args){
-//		int run = 0;
-//		System.setProperty("webdriver.chrome.driver", "C://schema_creation/chromedriver.exe");
-//		WebDriver dr = new ChromeDriver();
-//		while(run == 0){
-//		Server server = new Server();
-//		ArrayList<ListItem> listItems = server.CreateErrorLogs(dr);
-//		System.out.println(listItems.size());
-//		ErrorLine erline = new ErrorLine();
-//		erline.createErrorLine("poconorhra","Spektor33!",listItems,dr);
-//		}
-//		
-		insertMessageQ();
+		int run = 0;
+		System.setProperty("webdriver.chrome.driver", "C://schema_creation/chromedriver.exe");
+		WebDriver dr = new ChromeDriver();
+		while(run == 0){
+		Server server = new Server();
+		ArrayList<ListItem> listItems = server.CreateErrorLogs(dr);
+		ArrayList<ListItem> listItems2 = insertMessageQ(listItems);
+		System.out.println(listItems.size());
+		ErrorLine erline = new ErrorLine();
+		erline.createErrorLine("poconorhra","Spektor33!",listItems2,dr);
+		}
+		
 	}
-	public static void insertMessageQ(){
+	public static ArrayList<ListItem> insertMessageQ(ArrayList<ListItem> listitems2){
+		
 		Connection connection = null;
         ResultSet resultSet = null;
         Statement statement = null;
         Connection connection2 = null;
         ResultSet resultSet2 = null;
         Statement statement2 = null;
+        ArrayList<String> results = new ArrayList<String>();
+        
+        
+        
+//        try {
+//            connection2 = DriverManager
+//                    .getConnection(
+//                            "jdbc:firebirdsql://localhost:3050/C:/database/BASE.fdb",
+//                            "sysdba", "masterkey");
+//            statement2 = connection2.createStatement();
+//            resultSet2 = statement2.executeQuery("select DISTINCT * from TRIAGE");
+//            while(resultSet2.next()){
+//          	  Boolean insert = true;
+//        		String text2 = resultSet2.getString("SERVER")+"|"+resultSet2.getString("FILEID")+"|"+resultSet2.getString("ERROR")+"|"+resultSet2.getString("ERDATE")+"|"+resultSet2.getString("ERTIME");
+//        		text2 = text2.replaceAll("\n", "");
+//        		text2 = text2.trim();
+//        		results.add(text2);
+//        		
+//        	}
+//  		} catch (Exception e) {
+//              e.printStackTrace();
+//          } finally {
+//              try {
+//                  statement2.close();
+//                  connection2.close();
+//              } catch (Exception e) {
+//                  e.printStackTrace();
+//              }
+//          }
+        
+        
+        
+        
+        
 		try {
-            connection2 = DriverManager
+			connection2 = DriverManager
                     .getConnection(
                             "jdbc:firebirdsql://localhost:3050/C:/database/BASE.fdb",
                             "sysdba", "masterkey");
             statement2 = connection2.createStatement();
-            resultSet2 = statement2.executeQuery("select DISTINCT * from TRIAGE");
             String connectionURL = "jdbc:jtds:sqlserver://L4DWIPDS011.hewitt.com:13163/;" + "databaseName=FileConfig;user=poconor;password=Spektor27!;";
             connection = DriverManager
                     .getConnection(connectionURL);
             statement = connection.createStatement();
-            resultSet = statement.executeQuery("SELECT TOP 1000 *   FROM [FileConfig].[dbo].[messageQ]   WHERE msg_toaddressoverride NOT LIKE '%phuong.dam@aonhewitt.com%'   and msg_inserted_dttime > '2014-09-01'   AND msg_toaddressoverride NOT LIKE '%rob.neilson@aonhewitt.com%'   AND msg_toaddressoverride NOT LIKE '%tammy.adams@aonhewitt.com%'   AND msg_toaddressoverride NOT LIKE '%jon.petit@aonhewitt.com%'   AND msg_toaddressoverride NOT LIKE '%rob.neilson@aonhewitt.com%'   AND msg_toaddressoverride NOT LIKE '%sethiya.um@aonhewitt.com%'   AND msg_toaddressoverride NOT LIKE '%chad.smith@aonhewitt.com%'   AND msg_toaddressoverride NOT LIKE '%art.feld@aonhewitt.com%'   AND msg_addldetails NOT LIKE '%Your document has been received,%'   AND msg_addldetails NOT LIKE '%No valid Expectations found%'   AND msg_addldetails NOT LIKE '%completed successfully.%'   AND msg_addldetails NOT LIKE '%is completed successfully%'   AND msg_addldetails NOT LIKE '%Promoting audit profile%'   AND msg_addldetails NOT LIKE '%Removed expiration date%'   AND msg_addldetails NOT LIKE '%Unable to extract the XML%'   AND msg_addldetails NOT LIKE '%Problems archiving.%'   AND msg_addldetails NOT LIKE '%Missing Custom Parameter%'   AND msg_addldetails NOT LIKE '%getExtractorXML%'   AND msg_addldetails NOT LIKE '%updateAppScheduler%'   AND msg_addldetails NOT LIKE '%getAppScheduler%'   AND msg_addldetails NOT LIKE '%getConnection%'   AND msg_addldetails NOT LIKE '%getDataWarehouse%'   AND msg_addldetails NOT LIKE '%There is insufficient system memory in resource pool%'   AND msg_addldetails NOT LIKE '%Invalid FileID%'   AND msg_addldetails NOT LIKE '%Connection reset%'   AND msg_addldetails NOT LIKE '%Recieved an Empty file from%'   AND msg_addldetails NOT LIKE '%The executeQuery method must return%'   AND msg_expectid NOT LIKE '%NULL%'   order by msg_inserted_dttime desc");
-            //statement.executeUpdate("INSERT INTO TRIAGE (FILEID, STATUS, ERDATE, ERTIME, SERVER, LOCATION, DEVELOPER, FIST) VALUES ('"+fileID+"', '"+status+"', '"+date+"', '"+time+"', '"+server+"', '"+serviceLocation+"', '"+devName+"', '"+FullLine+"')");
-            Boolean insert = true;
+            DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+            Date date = new Date();
+            resultSet = statement.executeQuery("SELECT TOP 1000 *   FROM [FileConfig].[dbo].[messageQ]   WHERE msg_toaddressoverride NOT LIKE '%phuong.dam@aonhewitt.com%'   and msg_inserted_dttime >= '"+dateFormat.format(date)+"'   AND msg_toaddressoverride NOT LIKE '%rob.neilson@aonhewitt.com%'   AND msg_toaddressoverride NOT LIKE '%tammy.adams@aonhewitt.com%'   AND msg_toaddressoverride NOT LIKE '%jon.petit@aonhewitt.com%'   AND msg_toaddressoverride NOT LIKE '%rob.neilson@aonhewitt.com%'   AND msg_toaddressoverride NOT LIKE '%sethiya.um@aonhewitt.com%'   AND msg_toaddressoverride NOT LIKE '%chad.smith@aonhewitt.com%'   AND msg_toaddressoverride NOT LIKE '%art.feld@aonhewitt.com%'   AND msg_addldetails NOT LIKE '%Your document has been received,%'   AND msg_addldetails NOT LIKE '%No valid Expectations found%'   AND msg_addldetails NOT LIKE '%completed successfully.%'   AND msg_addldetails NOT LIKE '%is completed successfully%'   AND msg_addldetails NOT LIKE '%Promoting audit profile%'   AND msg_addldetails NOT LIKE '%Removed expiration date%'   AND msg_addldetails NOT LIKE '%Unable to extract the XML%'   AND msg_addldetails NOT LIKE '%Problems archiving.%'   AND msg_addldetails NOT LIKE '%Missing Custom Parameter%'   AND msg_addldetails NOT LIKE '%getExtractorXML%'   AND msg_addldetails NOT LIKE '%updateAppScheduler%'   AND msg_addldetails NOT LIKE '%getAppScheduler%'   AND msg_addldetails NOT LIKE '%getConnection%'   AND msg_addldetails NOT LIKE '%getDataWarehouse%'   AND msg_addldetails NOT LIKE '%There is insufficient system memory in resource pool%'   AND msg_addldetails NOT LIKE '%Invalid FileID%'   AND msg_addldetails NOT LIKE '%Connection reset%'   AND msg_addldetails NOT LIKE '%Recieved an Empty file from%'   AND msg_addldetails NOT LIKE '%The executeQuery method must return%'   AND msg_expectid NOT LIKE '%NULL%'  AND msg_addldetails NOT LIKE '%Exception while processing eligibility file during Conversion phase%'  order by msg_inserted_dttime desc");
+     
             while(resultSet.next()){
+            	Boolean insert = true;
             	String server = "";
             	if(resultSet.getString("msg_addldetails").contains("L4DWIPAP")){
-            		server = resultSet.getString("msg_addldetails").substring(resultSet.getString("msg_addldetails").indexOf("L4DWIPAP"),resultSet.getString("msg_addldetails").indexOf("L4DWIPAP")+12);
-            		server.replaceAll("\r\n", "");
+            		server = resultSet.getString("msg_addldetails").replaceAll("\n", "").substring(resultSet.getString("msg_addldetails").indexOf("L4DWIPAP"),resultSet.getString("msg_addldetails").replaceAll("\n", "").indexOf("L4DWIPAP")+12).replaceAll("\n", "");
+            		server = server.replaceAll("\n", "");
             	}
-            	//String text = server+"|"+resultSet.getString("msg_fileid")+"|"+resultSet.getString("msg_addldetails")+"|"+resultSet.getString("msg_inserted_dttime").split(" ")[0].replaceAll("/", "-")+"|"+resultSet.getString("msg_inserted_dttime").split(" ")[1].split(":")[0]+":"+resultSet.getString("msg_inserted_dttime").split(" ")[1].split(":")[1];
-            	//System.out.println(text);
-            	statement2.executeUpdate("INSERT INTO TRIAGE (FILEID, ERDATE, ERTIME, SERVER,ERROR) VALUES ('"+resultSet.getString("msg_fileid")+"', '"+resultSet.getString("msg_inserted_dttime").split(" ")[0].replaceAll("/", "-")+"', '"+resultSet.getString("msg_inserted_dttime").split(" ")[1].split(":")[0]+":"+resultSet.getString("msg_inserted_dttime").split(" ")[1].split(":")[1]+"', '"+server+"', '"+resultSet.getString("msg_addldetails")+"')");	
-          
+            	
+            	String error = resultSet.getString("msg_addldetails").replaceAll("\r\n", "");
+            	error = error.replaceAll("\n", "");
+            	error = error.replace(System.getProperty("line.separator"), "");
+            	listitems2.add(new ListItem(resultSet.getString("msg_fileid"), resultSet.getString("msg_inserted_dttime"), server, "",error, ""));
+            	System.out.println(error);
+            	String text = server.replaceAll("\n", "")+"|"+resultSet.getString("msg_fileid")+"|"+error+"|"+resultSet.getString("msg_inserted_dttime").split(" ")[0].replaceAll("/", "-")+"|"+resultSet.getString("msg_inserted_dttime").split(" ")[1].split(":")[0]+":"+resultSet.getString("msg_inserted_dttime").split(" ")[1].split(":")[1];
+            	text = text.replaceAll("\n", "");
+            	text = text.trim();
+//            	for(int i=0;i<results.size();i++){
+////            		System.out.println("TEXT: "+text);
+////            		System.out.println("RESULTS: "+results.get(i).toString());
+//        			if(results.get(i).toString().equals(text)){
+//        				insert = false;
+//        			}
+//        		}
+//        		if(insert==true){
+//        	      	statement2.executeUpdate("INSERT INTO TRIAGE (FILEID, ERDATE, ERTIME, SERVER,ERROR) VALUES ('"+resultSet.getString("msg_fileid")+"', '"+resultSet.getString("msg_inserted_dttime").split(" ")[0].replaceAll("/", "-")+"', '"+resultSet.getString("msg_inserted_dttime").split(" ")[1].split(":")[0]+":"+resultSet.getString("msg_inserted_dttime").split(" ")[1].split(":")[1]+"', '"+server+"', '"+resultSet.getString("msg_addldetails").replaceAll("(\\r|\\n|\r\n)", "")+"')");	
+//        	    }
+
             }
-//            if(insert == true){
-//            	statement.executeUpdate("INSERT INTO TRIAGE (FILEID, STATUS, ERDATE, ERTIME, SERVER, LOCATION, DEVELOPER, STACK, ERROR, FIST) VALUES ('"+fileID+"', '"+status+"', '"+date+"', '"+time+"', '"+server+"', '"+serviceLocation+"', '"+devName+"', '"+stackTrace+"', '"+errorMessage+"', '"+FullLine+"')");	
-//            }
-            
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
             try {
+            	statement2.close();
                 statement.close();
                 connection.close();
+                connection2.close();
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
+		return listitems2;
 		
 		
 	}
@@ -162,13 +216,14 @@ public class ErrorLine {
 	            	String text = resultSet.getString("FILEID")+"|"+resultSet.getString("STATUS")+"|"+resultSet.getString("ERDATE")+"|"+resultSet.getString("ERTIME")+"|"+resultSet.getString("SERVER")+"|"+resultSet.getString("LOCATION")+"|"+resultSet.getString("DEVELOPER")+"|"+resultSet.getString("ERROR")+"|"+resultSet.getString("STACK")+"|"+resultSet.getString("FIST");
 	            	String textMinus = resultSet.getString("FILEID")+"|"+resultSet.getString("ERDATE")+"|"+resultSet.getString("ERTIME")+"|"+resultSet.getString("SERVER")+"|"+resultSet.getString("LOCATION")+"|"+resultSet.getString("DEVELOPER")+"|"+resultSet.getString("ERROR")+"|"+resultSet.getString("STACK")+"|"+resultSet.getString("FIST");
 	            	
-	            	System.out.println(text);
+	            	//System.out.println(text);
 	            	String text1 = fileID+"|"+date+"|"+time+"|"+server+"|"+serviceLocation+"|"+devName+"|"+errorMessage+"|"+stackTrace+"|"+FullLine;
 	            	if(textMinus.equals(text1)){
 	            		insert = false;
 	            	}
 	            }
 	            if(insert == true){
+	            	System.out.println(fileID+"|"+date+"|"+time+"|"+server+"|"+serviceLocation+"|"+devName+"|"+errorMessage+"|"+stackTrace+"|"+FullLine);
 	            	statement.executeUpdate("INSERT INTO TRIAGE (FILEID, STATUS, ERDATE, ERTIME, SERVER, LOCATION, DEVELOPER, STACK, ERROR, FIST) VALUES ('"+fileID+"', '"+status+"', '"+date+"', '"+time+"', '"+server+"', '"+serviceLocation+"', '"+devName+"', '"+stackTrace+"', '"+errorMessage+"', '"+FullLine+"')");	
 	            }
 	            
@@ -187,6 +242,7 @@ public class ErrorLine {
 				Connection connection = null;
 		        ResultSet resultSet = null;
 		        Statement statement = null;
+		        setFullLine("");
 				try {
 		            Class.forName("org.firebirdsql.jdbc.FBDriver");
 		            connection = DriverManager

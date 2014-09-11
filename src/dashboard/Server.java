@@ -143,15 +143,16 @@ public class Server {
 		        String service = data.get(i)[1];
 		        String stack = data.get(i)[2];
 		        String error = data.get(i)[3];
+		        String nums = "0123456789";
 		        String server = "l4dwipap05"+m;
 		        String fileID = "?";
-		        if(service.contains(":HA")){
+		        if(service.contains(":HA")&& numCheck(service.charAt(service.indexOf(":HA")+3))==true){
         			fileID = service.substring(service.indexOf(":HA")+3,service.indexOf(":HA")+8);
         		}
-        		if(stack.contains(":HA")){
+        		if(stack.contains(":HA")&& numCheck(stack.charAt(stack.indexOf(":HA")+3))==true){
         			fileID = stack.substring(stack.indexOf(":HA")+3,stack.indexOf(":HA")+8);
         		}
-        		if(error.contains(":HA")){
+        		if(error.contains(":HA")&& numCheck(error.charAt(error.indexOf(":HA")+3))==true){
         			fileID = error.substring(error.indexOf(":HA")+3,error.indexOf(":HA")+8);
         		}
         		System.out.println("fileID: "+fileID);
@@ -181,6 +182,7 @@ public class Server {
 	            String stack = "" ;
 	            String error = "";
 	            String server1 = "l4dwipap05"+m;
+	            String nums = "0123456789";
 	        	for(int l=0;l<data.size();l++){
 	        		if(data.get(l)[0].equals(uV[k])){
 	        			if(service.equals(data.get(l)[1])){
@@ -204,13 +206,13 @@ public class Server {
 	        	        
 	        		}
 	        		dateTime = uV[k];
-	        		if(service.contains(":HA")){
+	        		if(service.contains(":HA")&& numCheck(service.charAt(service.indexOf(":HA")+3))==true){
 	        			fileID = service.substring(service.indexOf(":HA")+3,service.indexOf(":HA")+8);
 	        		}
-	        		if(stack.contains(":HA")){
+	        		if(stack.contains(":HA")&& numCheck(stack.charAt(stack.indexOf(":HA")+3))==true){
 	        			fileID = stack.substring(stack.indexOf(":HA")+3,stack.indexOf(":HA")+8);
 	        		}
-	        		if(error.contains(":HA")){
+	        		if(error.contains(":HA")&& numCheck(error.charAt(error.indexOf(":HA")+3))==true){
 	        			fileID = error.substring(error.indexOf(":HA")+3,error.indexOf(":HA")+8);
 	        		}
 	        	}
@@ -224,6 +226,13 @@ public class Server {
 	        
 	        return listItems;
 	        
+	}
+	public Boolean numCheck(char test){
+		Boolean ret = false;
+		if(test=='0'||test=='1'||test=='2'||test=='3'||test=='4'||test=='5'||test=='6'||test=='7'||test=='8'||test=='9'){
+			ret = true;
+		}
+		return ret;
 	}
 	
 }
