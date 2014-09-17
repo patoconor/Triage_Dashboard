@@ -102,9 +102,14 @@ public class MainGUI2 extends JPanel
     	//list of errors in left pane
     	errorList= new DefaultListModel<>();
     	setupList();
-    	
+    	int setindex = 0;
         list = new JList<>(errorList);
-        list.setSelectedIndex(index);
+        for(int i = 0; i<errorList.size();i++){
+        	if(errorList.get(i).getErid()==index){
+        		setindex = i;
+        	}
+        }
+        list.setSelectedIndex(setindex);
       ;  
         list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         list.addListSelectionListener(this);
@@ -1135,7 +1140,7 @@ public class MainGUI2 extends JPanel
     private static void createAndShowGUI2() throws ClassNotFoundException, InstantiationException, IllegalAccessException, UnsupportedLookAndFeelException {
     	
     	frame.getContentPane().removeAll();
-    	index = list.getSelectedIndex();
+    	index = list.getSelectedValue().getErid();
     	window = new MainGUI2();
         frame.getContentPane().add(window.getPane());
 
