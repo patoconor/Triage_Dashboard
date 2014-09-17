@@ -155,6 +155,18 @@ public class Server {
         		if(error.contains(":HA")&& numCheck(error.charAt(error.indexOf(":HA")+3))==true){
         			fileID = error.substring(error.indexOf(":HA")+3,error.indexOf(":HA")+8);
         		}
+        		if(fileID.equals("?")){
+        			driver.get("https://pconor:Spektor33!@l4dwipap05"+m+"/WmRoot/log-server-recent.dsp");
+        			String longstr = driver.getPageSource().toString();
+        	    	String[] line = longstr.split("\n");
+
+        	    	for (int i2=0;i2<line.length;i2++){
+        	    		if(line[i2].contains(dateTime.split(" ")[1])&&line[i2].contains("Successfully inserted in messageQ table")){
+        	    			fileID = line[i2].substring(line[i2].indexOf("----")-5, line[i2].indexOf("----"));
+        	    			
+        	    		}
+        	    	}
+        		}
         		System.out.println("fileID: "+fileID);
 		        listItems.add(new ListItem(fileID,dateTime,server,stack,error,service));
 	        	}
@@ -216,6 +228,18 @@ public class Server {
 	        			fileID = error.substring(error.indexOf(":HA")+3,error.indexOf(":HA")+8);
 	        		}
 	        	}
+	        	if(fileID.equals("?")){
+        			driver.get("https://pconor:Spektor33!@l4dwipap05"+m+"/WmRoot/log-server-recent.dsp");
+        			String longstr = driver.getPageSource().toString();
+        	    	String[] line = longstr.split("\n");
+
+        	    	for (int i2=0;i2<line.length;i2++){
+        	    		if(line[i2].contains(dateTime.split(" ")[1])&&line[i2].contains("Successfully inserted in messageQ table")){
+        	    			fileID = line[i2].substring(line[i2].indexOf("----")-5, line[i2].indexOf("----"));
+        	    			
+        	    		}
+        	    	}
+        		}
 	        	listItems.add(new ListItem(fileID,dateTime,server1,stack,error,service));
 	        }
 	}

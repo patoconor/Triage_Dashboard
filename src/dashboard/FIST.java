@@ -110,6 +110,9 @@ public class FIST  {
         	sReturn = we.getText();
         
         }
+        if(driver.findElements(By.className("feedbackPanelERROR")).size()>0){
+        	sReturn = "No Developer Found";
+        }
         else
         {
         	we = driver.findElement((By.className("rowOdd")));

@@ -9,6 +9,12 @@ import java.io.*;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Vector;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.chrome.ChromeDriver;
+
 import com.wm.util.Table;
 import com.wm.data.*;
 import com.wm.util.coder.IDataCodable;
@@ -21,124 +27,21 @@ public class SQL{
 	static String pw = "Spektor33!";
     public static void main(String[] args)
     {
-        // Connect to server - edit for alternate server
-    	 String s = null;
-   		try {
-   			s = InetAddress.getLocalHost().toString();
-   		} catch (UnknownHostException e1) {
-   			// TODO Auto-generated catch block
-   			e1.printStackTrace();
-   		}
+    	System.setProperty("webdriver.chrome.driver", "C://schema_creation/chromedriver.exe");
+    	WebDriver driver = new ChromeDriver();
+    	driver.get("https://pconor:Spektor33!@l4dwipap054/WmRoot/log-server-recent.dsp");
+//    	WebElement ele = driver.findElement(By.xpath("//*[contains(.,'06:32:37')]"));
+//    	System.out.println(ele.getText());
+    	//System.out.println(driver.getPageSource());
+    	String longstr = driver.getPageSource().toString();
+    	String[] line = longstr.split("\n");
 
-
-           String two = ".aonnet.aon.net:5555";
-           String one = s.substring(0, s.indexOf("/"));
-       	  String server1 = one+two;
-         Context context = new Context();
-
-        // To use SSL:
-        //
-        // context.setSecure(true);
-
-        // Optionally send authentication certificates
-        //
-        // String  cert    = "c:\\myCerts\\cert.der";
-        // String  privKey = "c:\\myCerts\\privkey.der";
-        // String  cacert  = "c:\\myCerts\\cacert.der";
-        // context.setSSLCertificates(cert, privKey, cacert);
-
-        // Set username and password for protected services
-         String username = user;
-         String password = pw; 
-
-         try {
-             context.connect(server1, username, password);
-         } catch (ServiceException e) {
-             System.out.println("\n\tCannot connect to server \""+server1+"\"");
-             System.exit(0);
-         }
-
-        try
-        {
-        
-            // *** Invoke the Service and Disconnect ***
-            IData outputDocument = invoke(context);
-            context.disconnect();
-            System.out.println("\n********* Successful invoke **********");
-
-            // *** Access the Results ***
-            System.out.println("\n************* Inputs *****************");
-            System.out.println("This Service has no inputs.");
-            System.out.println("\n************* Outputs *****************");
-            GenUtil.printRec(outputDocument, "Output");
-            String output = outputDocument.toString();
-            System.out.println(output);
-            
-        } catch (IOException e) {
-            System.err.println(e);
-        } catch (ServiceException e) {
-            System.err.println(e);
-        }
-        System.exit(0);
-    }
-
-    
-    public static String getString(String name)
-         throws IOException, ServiceException
-    {
-         System.out.print(name + " =");
-         return (new BufferedReader(new InputStreamReader(System.in))).readLine();
-    }
-
-    public static String[] getStringArray(String name)
-         throws IOException, ServiceException
-    {
-         int size;
-         String tmp;
-         System.out.print(name + ": how large? ");
-         tmp = (new BufferedReader(new InputStreamReader(System.in))).readLine();
-         size = Integer.parseInt(tmp);
-
-         String[] strArray = new String[size];
-
-         for(int i = 0; i < size; i++){
-	     strArray[i] = getString(name +"[" + i + "]");
-         }
-
-         return strArray;
-    }
-
-    public static String[][] getStringTable(String name)
-         throws IOException, ServiceException
-    {
-         int rows = 0, cols = 0;
-         String tmp;
-         System.out.print(name + ": how many rows? ");
-         tmp = (new BufferedReader(new InputStreamReader(System.in))).readLine();
-         rows = Integer.parseInt(tmp);
-
-         System.out.print(name + ": how many cols? ");
-         tmp = (new BufferedReader(new InputStreamReader(System.in))).readLine();
-         cols = Integer.parseInt(tmp);
-
-         String[][] strTable = new String[rows][cols];
-
-         for(int i = 0; i < rows; i++){
-             for(int j = 0; j < cols; j++){
-                  strTable[i][j] = getString(name+"["+i+"]["+j+"]");
-             }
-         }
-
-         return strTable;
-    }
-
-    public static IData invoke(
-        Context context)
-        throws IOException, ServiceException
-    {
-         IData out = context.invoke("test", "messageQSQL", null);
-         IData outputDocument = out;
-         return outputDocument;
+    	for (int i=0;i<line.length;i++){
+    		if(line[i].contains("06:32:37")&&line[i].contains("Successfully inserted in messageQ table")){
+    			String newone = line[i].substring(line[i].indexOf("----")-5, line[i].indexOf("----"));
+    			System.out.println(newone);
+    		}
+    	}
     }
 }
 

@@ -52,17 +52,19 @@ public class ErrorLine {
 	private ArrayList <String> startTimeList;
 	private ArrayList <String> endTimeList;
 	public static void main (String[] args){
-		int run = 0;
-		System.setProperty("webdriver.chrome.driver", "C://schema_creation/chromedriver.exe");
-		WebDriver dr = new ChromeDriver();
-		while(run == 0){
-		Server server = new Server();
-		ArrayList<ListItem> listItems = server.CreateErrorLogs(dr);
-		ArrayList<ListItem> listItems2 = insertMessageQ(listItems);
-		System.out.println(listItems.size());
-		ErrorLine erline = new ErrorLine();
-		erline.createErrorLine("poconorhra","Spektor33!",listItems2,dr);
-		}
+//		int run = 0;
+//		System.setProperty("webdriver.chrome.driver", "C://schema_creation/chromedriver.exe");
+//		WebDriver dr = new ChromeDriver();
+//		while(run == 0){
+//		Server server = new Server();
+//		ArrayList<ListItem> listItems = server.CreateErrorLogs(dr);
+//		ArrayList<ListItem> listItems2 = insertMessageQ(listItems);
+//		System.out.println(listItems.size());
+//		ErrorLine erline = new ErrorLine();
+//		erline.createErrorLine("poconorhra","Spektor33!",listItems2,dr);
+//		}
+		ArrayList<ListItem> newlist = new ArrayList<ListItem>();
+		insertMessageQ(newlist);
 		
 	}
 	public static ArrayList<ListItem> insertMessageQ(ArrayList<ListItem> listitems2){
@@ -108,11 +110,11 @@ public class ErrorLine {
         
         
 		try {
-			connection2 = DriverManager
-                    .getConnection(
-                            "jdbc:firebirdsql://localhost:3050/C:/database/BASE.fdb",
-                            "sysdba", "masterkey");
-            statement2 = connection2.createStatement();
+//			connection2 = DriverManager
+//                    .getConnection(
+//                            "jdbc:firebirdsql://localhost:3050/C:/database/BASE.fdb",
+//                            "sysdba", "masterkey");
+//            statement2 = connection2.createStatement();
             String connectionURL = "jdbc:jtds:sqlserver://L4DWIPDS011.hewitt.com:13163/;" + "databaseName=FileConfig;user=poconor;password=Spektor27!;";
             connection = DriverManager
                     .getConnection(connectionURL);
@@ -125,7 +127,7 @@ public class ErrorLine {
             	Boolean insert = true;
             	String server = "";
             	if(resultSet.getString("msg_addldetails").contains("L4DWIPAP")){
-            		server = resultSet.getString("msg_addldetails").replaceAll("\n", "").substring(resultSet.getString("msg_addldetails").indexOf("L4DWIPAP"),resultSet.getString("msg_addldetails").replaceAll("\n", "").indexOf("L4DWIPAP")+12).replaceAll("\n", "");
+            		server = resultSet.getString("msg_addldetails").replaceAll("\n", "").substring(resultSet.getString("msg_addldetails").indexOf("L4DWIPAP")-1,resultSet.getString("msg_addldetails").replaceAll("\n", "").indexOf("L4DWIPAP")+11).replaceAll("\n", "");
             		server = server.replaceAll("\n", "");
             	}
             	
@@ -153,10 +155,10 @@ public class ErrorLine {
             e.printStackTrace();
         } finally {
             try {
-            	statement2.close();
+//            	statement2.close();
                 statement.close();
                 connection.close();
-                connection2.close();
+//                connection2.close();
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -224,7 +226,7 @@ public class ErrorLine {
 	            }
 	            if(insert == true){
 	            	System.out.println(fileID+"|"+date+"|"+time+"|"+server+"|"+serviceLocation+"|"+devName+"|"+errorMessage+"|"+stackTrace+"|"+FullLine);
-	            	statement.executeUpdate("INSERT INTO TRIAGE (FILEID, STATUS, ERDATE, ERTIME, SERVER, LOCATION, DEVELOPER, STACK, ERROR, FIST) VALUES ('"+fileID+"', '"+status+"', '"+date+"', '"+time+"', '"+server+"', '"+serviceLocation+"', '"+devName+"', '"+stackTrace+"', '"+errorMessage+"', '"+FullLine+"')");	
+	            	statement.executeUpdate("INSERT INTO TRIAGE (FILEID, STATUS, ERDATE, ERTIME, SERVER, LOCATION, DEVELOPER, STACK, ERROR, FIST) VALUES ('"+fileID+"', '"+status+"', '"+date+"', '"+time+"', '"+server+"', '"+serviceLocation+"', '"+devName+"', '"+stackTrace+"', '"+errorMessage+"', '"+FullLine+"');");	
 	            }
 	            
 	        } catch (Exception e) {
@@ -496,12 +498,20 @@ public class ErrorLine {
     	else if(Enum.contentEquals("F")){displayName= "F: Crimson (Prod P)";}
     	else if(Enum.contentEquals("H")){displayName= "H: Silver (Prod P)";}
     	else if(Enum.contentEquals("N")){displayName= "N: Gray (Prod P)";}
+    	else if(Enum.contentEquals("PI")){displayName= "PI: Pink (Prod P)";}
+    	else if(Enum.contentEquals("AQ")){displayName= "AQ: Aqua (Prod P)";}
+    	else if(Enum.contentEquals("AP")){displayName= "AP: Apricot (Prod P)";}
+    	else if(Enum.contentEquals("RO")){displayName= "RO: Rose (Prod P)";}
     	else if(Enum.contentEquals("A")){displayName= "A: Indigo (Prod W)";}
     	else if(Enum.contentEquals("E")){displayName= "E: Topaz (Prod W)";}
     	else if(Enum.contentEquals("G")){displayName= "G: Navy (Prod W)";}
     	else if(Enum.contentEquals("J")){displayName= "J: Cobalt (Prod W)";}
     	else if(Enum.contentEquals("O")){displayName= "O: Red (Prod W)";}
     	else if(Enum.contentEquals("R")){displayName= "R: Orange (Prod W)";}
+    	else if(Enum.contentEquals("SL")){displayName= "SL: Salmon (Prod W)";}
+    	else if(Enum.contentEquals("CR")){displayName= "CR: Cream (Prod W)";}
+    	else if(Enum.contentEquals("SG")){displayName= "SG: Sage (Prod W)";}
+    	else if(Enum.contentEquals("BL")){displayName= "BL: Blush (Prod W)";}
     	else if(Enum.contentEquals("K")){displayName= "K: White (Prod X)";}
     	else if(Enum.contentEquals("V")){displayName= "V: Gold (Prod X)";}
     	else if(Enum.contentEquals("S")){displayName= "S: Peach (Prod X)";}
@@ -513,7 +523,7 @@ public class ErrorLine {
     	else if(Enum.contentEquals("7")){displayName= "7: Emerald (Prod X)";}
     	else if(Enum.contentEquals("8")){displayName= "8: Tan (Prod X)";}
     	else if(Enum.contentEquals("9")){displayName= "9: Black (Prod X)";}
-    	
+    	else if(Enum.contentEquals("LI")){displayName= "LI: Lime (Prod X)";}
     	return displayName;
     }
 

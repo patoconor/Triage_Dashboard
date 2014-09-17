@@ -17,6 +17,8 @@ import javax.swing.event.*;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 
+import com.wm.util.FileUtil;
+
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -42,22 +44,22 @@ public class MainGUI2 extends JPanel
 	private String sServerUser;
 	private String sServerPass;
 	private String sOfficeLocation;
-	private JScrollPane errorListScroll;
+	private static JScrollPane errorListScroll;
 	private static MainGUI2 window;
 	private JSplitPane splitPane;
     private JSplitPane splitPaneBottom;
-    
+    private static Boolean hideComplete = false;
     private JButton bRefreshList;
     private JButton bChangeCredentials;
 	private JButton bOptions;
 	
     private static String daysPast;
-    private JList<ListItem> list;
+    private static JList<ListItem> list;
     private JPanel errorViewPanel;
     private JPanel pCredentials;
     
-    DefaultListModel<ListItem> errorList;
-    
+    private static DefaultListModel<ListItem> errorList;
+    private static int index = 0;
     private JTextField tfFileID;
     private JTextField tfFailTime;
     private JTextField tfServiceName;
@@ -82,13 +84,14 @@ public class MainGUI2 extends JPanel
     private JButton bReplyInFist;
     private JTextPane tpRecommendedAction;
     private JButton bTakeAction;
-    private String dateSelect;
+    private static String dateSelect;
     private static String currentDate;
     
 	private JDialog dCred;
     String[] textData= new String[5];
     private JLabel lblTriageDashboard;
     private JTextArea textArea_1;
+    private JToggleButton tglbtnNewToggleButton;
         
     
     
@@ -101,7 +104,7 @@ public class MainGUI2 extends JPanel
     	setupList();
     	
         list = new JList<>(errorList);
-        list.setSelectedIndex(0);
+        list.setSelectedIndex(index);
       ;  
         list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         list.addListSelectionListener(this);
@@ -113,7 +116,7 @@ public class MainGUI2 extends JPanel
         
         //bottom panel for credentials and options
         pCredentials = new JPanel();
-        pCredentials.setLayout(new GridLayout(0,3,10,0));
+        pCredentials.setLayout(new GridLayout(0,4,10,0));
         pCredentials.setMinimumSize(new Dimension(0,1*screenSize.height/30));
         
         bRefreshList = new JButton();
@@ -123,9 +126,52 @@ public class MainGUI2 extends JPanel
 		  public void actionPerformed(ActionEvent evt) {			  
 			  new Thread(new Runnable() {
 			        public void run() {
-			        	setupList();
+			        	try {
+							createAndShowGUI2();
+						} catch (ClassNotFoundException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} catch (InstantiationException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} catch (IllegalAccessException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} catch (UnsupportedLookAndFeelException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
 			                
 			            }}).start();}});
+        
+        tglbtnNewToggleButton = new JToggleButton("Hide/Show Completed");
+        tglbtnNewToggleButton.addMouseListener(new MouseAdapter() {
+        	@Override
+        	public void mouseClicked(MouseEvent e) {
+        		if(hideComplete == false){
+        			hideComplete = true;
+        		}
+        		else{
+        			hideComplete = false;
+        		}
+        		try {
+					createAndShowGUI2();
+				} catch (ClassNotFoundException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				} catch (InstantiationException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				} catch (IllegalAccessException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				} catch (UnsupportedLookAndFeelException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+        	}
+        });
+        pCredentials.add(tglbtnNewToggleButton);
         
         bChangeCredentials = new JButton();
         bChangeCredentials.setText("Change Credentials");
@@ -148,14 +194,42 @@ public class MainGUI2 extends JPanel
         
         
     	bOptions = new JButton();
-    	bOptions.setText("Options");
+    	bOptions.setText("Update");
         pCredentials.add(bOptions);
         bOptions.addActionListener(new ActionListener() {
 		  public void actionPerformed(ActionEvent evt) {			  
 			  new Thread(new Runnable() {
 			        public void run() {
-			        	//Run
+			        	int value = (JOptionPane.showConfirmDialog(
+			                    frame,
+			                      "Are you sure you want to update? This will close the program.",
+			                      "Warning",
+			                      JOptionPane.YES_NO_OPTION));
+			                if (value == JOptionPane.YES_OPTION) {
+			                  if(new File("C://Triage_Dashboard/updateTD.bat").isFile()==false){
+			                    File source2 = new File("R://BenIT/Files/All/Tools/TriageDashboard/updateTD.bat");
+			                    File desc1 = new File("C://Triage_Dashboard/updateTD.bat");
+			                    try {
+			                      FileUtil.copyTo(source2, desc1);
+			                    } catch (IOException e1) {
+			                      // TODO Auto-generated catch block
+			                      e1.printStackTrace();
+			                    }
+			                  }
+			                  
+			                  
+			                  try {
+			                    Runtime.getRuntime().exec("cmd /c start C://Triage_Dashboard/updateTD.bat");
+			                    System.exit(0);
+			                  } catch (IOException e1) {
+			                    // TODO Auto-generated catch block
+			                    e1.printStackTrace();
+			                  }
+			                }else if (value == JOptionPane.NO_OPTION) {
+			                }
 			                
+
+
 			            }}).start();}});
         
         //left pane
@@ -174,9 +248,9 @@ public class MainGUI2 extends JPanel
         splitPaneBottom.setOneTouchExpandable(false);
         splitPaneBottom.setEnabled(false);
         splitPaneBottom.setResizeWeight(1);
-    
+        splitPaneBottom.setMinimumSize(new Dimension(1*screenSize.width/6, 1*screenSize.height/6));
         //Provide a preferred size for the split pane.
-        splitPane.setPreferredSize(new Dimension(1123, 700));
+        splitPane.setPreferredSize(new Dimension(5*screenSize.width/6, 5*screenSize.height/6));
         
         
 	    credCheck();
@@ -194,7 +268,7 @@ public class MainGUI2 extends JPanel
         
     }
     
-    public void setupList()
+    public static void setupList()
     {
     	
     	/*
@@ -205,7 +279,12 @@ public class MainGUI2 extends JPanel
     	BufferedReader br;
     	String line;
     	System.out.println(daysPast);
-    	
+//    	if(errorList.size()>0){
+//    		for(int i=0;i<errorList.size();i++){
+//    		errorList.remove(i);
+//    		}
+//    		errorList= new DefaultListModel<>();
+//    	}
     	Connection connection = null;
         ResultSet resultSet = null;
         Statement statement = null;
@@ -224,7 +303,16 @@ public class MainGUI2 extends JPanel
                 d.setTime( c.getTime().getTime() );
                 DateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy");
                 setDateSelect(dateFormat.format(d));
-	            resultSet = statement.executeQuery("select DISTINCT * from TRIAGE WHERE ERDATE >= '"+dateSelect+"' order by ERDATE desc, ERTIME desc");
+                String one = "select DISTINCT * from TRIAGE WHERE ERDATE >= '"+dateSelect+"' order by ERDATE desc, ERTIME desc";
+                String two = "select DISTINCT * from TRIAGE WHERE ERDATE >= '"+dateSelect+"' AND STATUS != 2 order by ERDATE desc, ERTIME desc";
+	            String finalone = "";
+                if(hideComplete==true){
+                	finalone = two;
+	            }
+                if(hideComplete==false){
+                	finalone = one;
+                }
+                resultSet = statement.executeQuery(finalone);
 	            //statement.executeUpdate("INSERT INTO TRIAGE (FILEID, STATUS, ERDATE, ERTIME, SERVER, LOCATION, DEVELOPER, FIST) VALUES ('"+fileID+"', '"+status+"', '"+date+"', '"+time+"', '"+server+"', '"+serviceLocation+"', '"+devName+"', '"+FullLine+"')");
 	            while(resultSet.next()){
 	            	String text = resultSet.getString("FILEID")+"|"+resultSet.getString("STATUS")+"|"+resultSet.getString("ERDATE")+"|"+resultSet.getString("ERTIME")+"|"+resultSet.getString("SERVER")+"|"+resultSet.getString("LOCATION")+"|"+resultSet.getString("DEVELOPER")+"|"+resultSet.getString("ERROR")+"|"+resultSet.getString("STACK")+"|"+resultSet.getString("FIST");
@@ -609,6 +697,8 @@ public class MainGUI2 extends JPanel
 		tfEndTime.setBackground(Color.WHITE);
 		
 		textArea = new JTextArea();
+		textArea.setLineWrap(true);
+		textArea.setFont(new Font("Tahoma", Font.PLAIN, 11));
 		textArea.setBounds(647, 457, 231, 105);
 		errorViewPanel.add(textArea);
 		
@@ -656,6 +746,10 @@ public class MainGUI2 extends JPanel
 		});
 		btnGo.setBounds(169, 54, 51, 23);
 		errorViewPanel.add(btnGo);
+		
+		JLabel lblV = new JLabel("v_1.1.0");
+		lblV.setBounds(722, 681, 46, 14);
+		errorViewPanel.add(lblV);
 		bViewExpectations.addActionListener(new ActionListener() {
 		  public void actionPerformed(ActionEvent evt) {			  
 			  new Thread(new Runnable() {
@@ -718,6 +812,7 @@ public class MainGUI2 extends JPanel
 						// TODO Auto-generated catch block
 						e1.printStackTrace();
 					}
+        			
         		}
         		if(comboBox.getSelectedItem().toString().equals("Complete")){
         			Connection connection = null;
@@ -1028,7 +1123,7 @@ public class MainGUI2 extends JPanel
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         window = new MainGUI2();
         frame.getContentPane().add(window.getPane());
-   //     frame.setMinimumSize(new Dimension(500, 300));
+        //frame.setMinimumSize(new Dimension(500, 300));
 
         //Display the window.
         
@@ -1040,6 +1135,7 @@ public class MainGUI2 extends JPanel
     private static void createAndShowGUI2() throws ClassNotFoundException, InstantiationException, IllegalAccessException, UnsupportedLookAndFeelException {
     	
     	frame.getContentPane().removeAll();
+    	index = list.getSelectedIndex();
     	window = new MainGUI2();
         frame.getContentPane().add(window.getPane());
 
@@ -1056,7 +1152,7 @@ public class MainGUI2 extends JPanel
                 try {
                 	daysPast = "0";
 					createAndShowGUI();
-					updater();
+					
 				} catch (ClassNotFoundException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -1098,7 +1194,7 @@ public class MainGUI2 extends JPanel
             }
             if(item.getStatus().equals("0"))
             {
-            	setBackground(Color.RED);
+            	setBackground(Color.WHITE);
             }
             if (isSelected) {
                 setBorder(BorderFactory.createLineBorder(Color.BLACK,2));
@@ -1115,8 +1211,8 @@ public class MainGUI2 extends JPanel
 		return dateSelect;
 	}
 
-	public void setDateSelect(String dateSelect) {
-		this.dateSelect = dateSelect;
+	public static void setDateSelect(String dateSelect1) {
+		dateSelect = dateSelect1;
 	}
    public void clearExpectations()
    {
@@ -1128,14 +1224,15 @@ public class MainGUI2 extends JPanel
 	   	getCurrentItem().getEndTimeList().clear();
 	   	getCurrentItem().getAnalystNameList().clear();
    }
-   public static void updater(){
+   public static  void updater(){
 	   ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor();
 		exec.scheduleAtFixedRate(new Runnable() {
 			//This method runs once every second, it is used to set the progress bars, automate FIST deployment, and automate Maestro automation
 		  @Override
 		  public void run() {
+			  //window.list.removeAll();
+			  System.out.println("15");
 			  try {
-				 
 				createAndShowGUI2();
 			} catch (ClassNotFoundException e) {
 				// TODO Auto-generated catch block
