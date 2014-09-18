@@ -25,6 +25,7 @@ public class ListItem {
 	private String dateTime;
 	private String status;
 	private String resolution;
+	private String replyText;
 	
 	private int erid;
 	private int expectNum;
@@ -109,6 +110,8 @@ public class ListItem {
 		setErrorMessage(list.get(7));
 		setStackTrace(list.get(8));
 		setExpectNum(Integer.parseInt(list.get(9)));
+		
+    	setReplyText("ERROR:\n\n\nRESOLUTION:\n");
 		}
 		int i = 10;
 		int expectNum=0;
@@ -370,6 +373,14 @@ public class ListItem {
 
 	public void setDateTime(String dateTime) {
 		this.dateTime = dateTime;
+	}
+
+	public String getReplyText() {
+		return replyText;
+	}
+
+	public void setReplyText(String replyText) {
+		this.replyText = replyText;
 	}
 
 	

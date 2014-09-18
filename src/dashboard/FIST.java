@@ -5,6 +5,8 @@ import java.awt.Toolkit;
 import java.util.Arrays;
 import java.util.List;
 
+import javax.swing.JOptionPane;
+
 import org.openqa.selenium.By;
 import org.openqa.selenium.Point;
 import org.openqa.selenium.WebDriver;
@@ -265,37 +267,44 @@ public class FIST  {
 				return sName;
 	}
 	
-	public void errorReply(int expectNum, String fileID, boolean lookingIntoItReply)
+	public boolean errorReply(int expectNum, String fileID, String reply)
 	{
 		//must call getExpectationsPage first
+			boolean bReplied=false;
+		
 				String xpathStart ="//form[@name='expectationsform']/table/tbody/tr[2]/td/table/tbody/tr/td/table/tbody/tr[4]/td/table/tbody/tr/td/table/tbody/tr[";
 				String xpathEnd = "]/td[17]/select/option[@value='1']";
 				
 				we = driver.findElement(By.xpath(xpathStart + expectNum + xpathEnd));
 				we.click();
 				
-				WebDriverWait wait = new WebDriverWait(driver, 5);
-				wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("id46")));
+				try{
 				
+				WebDriverWait wait = new WebDriverWait(driver, 10);
+				wait.until(ExpectedConditions.visibilityOfElementLocated(By.partialLinkText(fileID)));
 				
-				if(driver.findElements(By.partialLinkText(fileID)).size() != 0)
-		        {
 		        	we = driver.findElement(By.partialLinkText(fileID));
 		        	we.click();
 		        	we = driver.findElement(By.name("selectedReply"));
 		        	we.click();
-		        	if(lookingIntoItReply==true)
-		        	{
-		        	we.sendKeys("Looking into it...");
-		        	}
 		        	
+		        	we.sendKeys(reply);
+		        	
+		        	
+		        	we = driver.findElement(By.name("replyButton"));
+		        	//we.click();
+		        	
+		        	bReplied=true;
 		        	
 		        }
-				else
+				catch(Exception e)
 				{
-					driver.close();
-					//Add error message display!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+					driver.quit();
+					JOptionPane.showMessageDialog(null,"The selected expectation is not an error.");
+					bReplied=false;
 				}
+				
+				return bReplied;
 	}
 	
 }

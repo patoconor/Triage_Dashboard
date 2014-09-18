@@ -59,7 +59,12 @@ public class MainGUI2 extends JPanel
     private JPanel pCredentials;
     
     private static DefaultListModel<ListItem> errorList;
+  //variables to keep stuff the same on refresh
     private static int index = 0;
+    private static int selectedViewPastDays=0;
+    private static int selectedServerBox=0;
+    private static Dimension frameSize= new Dimension(1220, 671);
+    
     private JTextField tfFileID;
     private JTextField tfFailTime;
     private JTextField tfServiceName;
@@ -77,12 +82,13 @@ public class MainGUI2 extends JPanel
     private JComboBox<String> cbServerLocationSelect;
     private JButton bServer;
     
-    private JComboBox<String> cbExpectationSelect;
+    private static JComboBox<String> cbExpectationSelect;
     private JButton bViewExpectations;
     
     private JButton bLookingIntoIt;
     private JButton bReplyInFist;
-    private JTextPane tpRecommendedAction;
+    private static JTextPane tpReplyText;
+    private static int previousIndex;
     private JButton bTakeAction;
     private static String dateSelect;
     private static String currentDate;
@@ -107,22 +113,22 @@ public class MainGUI2 extends JPanel
         for(int i = 0; i<errorList.size();i++){
         	if(errorList.get(i).getErid()==index){
         		setindex = i;
+        		previousIndex=i;
         	}
         }
         list.setSelectedIndex(setindex);
-      ;  
         list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         list.addListSelectionListener(this);
         list.setCellRenderer(new ListItemRenderer());
         
         //right panel for viewing error details
         errorViewPanel = new JPanel();
-        errorViewPanel.setPreferredSize(new Dimension(899, 559));
+        errorViewPanel.setPreferredSize(new Dimension(1049, 640));
         
         //bottom panel for credentials and options
         pCredentials = new JPanel();
         pCredentials.setLayout(new GridLayout(0,4,10,0));
-        pCredentials.setMinimumSize(new Dimension(0,1*screenSize.height/30));
+        pCredentials.setMinimumSize(new Dimension(0,20));
         
         bRefreshList = new JButton();
         bRefreshList.setText("Refresh List");
@@ -245,7 +251,7 @@ public class MainGUI2 extends JPanel
         //Create a vertically split pane with the two scroll panes in it.
         splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,	errorListScroll, errorViewScroll);
         splitPane.setOneTouchExpandable(true);
-        splitPane.setDividerLocation(190);
+        splitPane.setDividerLocation(161);
         //splitPane.setMinimumSize(new Dimension(1*screenSize.width/6, 1*screenSize.height/6));
 
         //create a horizontally split pane for the credentials and options
@@ -255,7 +261,7 @@ public class MainGUI2 extends JPanel
         splitPaneBottom.setResizeWeight(1);
         splitPaneBottom.setMinimumSize(new Dimension(1*screenSize.width/6, 1*screenSize.height/6));
         //Provide a preferred size for the split pane.
-        splitPane.setPreferredSize(new Dimension(5*screenSize.width/6, 5*screenSize.height/6));
+        splitPaneBottom.setPreferredSize(frameSize);
         
         
 	    credCheck();
@@ -417,14 +423,16 @@ public class MainGUI2 extends JPanel
     
     //Listens to the list
     public void valueChanged(ListSelectionEvent e) {
+    	errorList.get(previousIndex).setReplyText(tpReplyText.getText());
         populateErrorPanel();
-        
+        previousIndex=list.getSelectedIndex();
     }
     
-    public ListItem getCurrentItem()
+    public static ListItem getCurrentItem()
     {
     	return errorList.get(list.getSelectedIndex());
     }
+    
     
     //Shows the corresponding information for a selected error
     private void setupErrorPanel() {
@@ -435,36 +443,40 @@ public class MainGUI2 extends JPanel
         
     	
         JPanel pErrorInfo = new JPanel();
-        pErrorInfo.setBounds(0, 446, 601, 241);
-        pErrorInfo.setLayout(null);
+        pErrorInfo.setBounds(-1, 400, 601, 241);
+        pErrorInfo.setLayout(new BoxLayout(pErrorInfo,BoxLayout.Y_AXIS));
         pErrorInfo.setBorder(BorderFactory.createLineBorder(Color.BLACK));
     	errorViewPanel.add(pErrorInfo);
     	
     	
     	JLabel lErrorHeader = new JLabel("Error Information:");
-    	lErrorHeader.setBounds(250, 0 , 100, 20);
+    	lErrorHeader.setAlignmentX(Component.CENTER_ALIGNMENT);
     	pErrorInfo.add(lErrorHeader);
     	
     	textArea_1 = new JTextArea();
     	textArea_1.setFont(new Font("Tahoma", Font.PLAIN, 11));
     	textArea_1.setLineWrap(true);
-    	textArea_1.setBounds(22, 31, 558, 183);
+    	textArea_1.setBounds(10, 20, 582, 213);
     	textArea_1.setWrapStyleWord(true);
-    	pErrorInfo.add(textArea_1);
+    	
+    	JScrollPane scroll = new JScrollPane (textArea_1, 
+    			   JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+
+    	pErrorInfo.add(scroll);
     	
     	
     	JPanel pActions = new JPanel();
-    	pActions.setBounds(599, -1, 301, 81);
+    	pActions.setBounds(599, -1, 451, 402);
     	pActions.setLayout(null);
     	pActions.setBorder(BorderFactory.createLineBorder(Color.BLACK));
     	errorViewPanel.add(pActions);
     	
-    	JLabel lActionHeader = new JLabel("Reply to                                     expectation in FIST:");
-    	lActionHeader.setBounds(18, 0 , 300, 20);
+    	JLabel lActionHeader = new JLabel("Reply to                                 expectation in FIST:");
+    	lActionHeader.setBounds(110, 0 , 300, 20);
     	pActions.add(lActionHeader);
     	
     	JLabel lActionHeader2 = new JLabel("currently selected");
-    	lActionHeader2.setBounds(67, 0 , 150, 20);
+    	lActionHeader2.setBounds(156, 0 , 150, 20);
     	pActions.add(lActionHeader2);
     	Font font = lActionHeader2.getFont();
     	Map attributes = font.getAttributes();
@@ -474,7 +486,7 @@ public class MainGUI2 extends JPanel
     	
     	
     	bLookingIntoIt = new JButton();
-    	bLookingIntoIt.setBounds(20, 20 , 260, 20);
+    	bLookingIntoIt.setBounds(95, 20 , 260, 20);
     	bLookingIntoIt.setText("Reply \"Looking into it...\"");
     	pActions.add(bLookingIntoIt);
         bLookingIntoIt.addActionListener(new ActionListener() {
@@ -483,18 +495,44 @@ public class MainGUI2 extends JPanel
 			        public void run() {
 			        	if(getCurrentItem().getExpectNum()!=0)
 			        	{
+			        		int replyIndex = list.getSelectedIndex();
+			        		int expectIndex = cbExpectationSelect.getSelectedIndex();
+			        		
+			        		
 			        		System.setProperty("webdriver.chrome.driver", "C://schema_creation/chromedriver.exe");
 			        		WebDriver dr = new ChromeDriver();
 			        		FIST Fdriver = new FIST(sFistUser,sFistPass,sOfficeLocation,false,dr);
-			        		Fdriver.loginConfig();
-			        		Fdriver.getExpectationsPage(getCurrentItem().getFileID(),getCurrentItem().getDate());
-			        		Fdriver.errorReply((getCurrentItem().getExpectNum() +(1 - cbExpectationSelect.getSelectedIndex())), getCurrentItem().getFileID(), true);
+			        		try{
+				        		
+				        		Fdriver.loginConfig();
+				        		Fdriver.getExpectationsPage(errorList.get(replyIndex).getFileID(),errorList.get(replyIndex).getDate());
+				        		if(Fdriver.errorReply((errorList.get(replyIndex).getExpectNum() +(1 - expectIndex)), errorList.get(replyIndex).getFileID(), "Looking into it..."))
+				        		{
+				        		Fdriver.closeDriver();
+				        		changeErrorStatus(1,errorList.get(replyIndex));
+				        		}
+			        		}
+			        		catch(Exception e)
+			        		{
+			        			Fdriver.closeDriver();
+			        			JOptionPane.showMessageDialog(null,"There was an error while attempting to reply.");
+			        		}
 			        	}
 			            }}).start();}});
         
+        JLabel lRecommendedHeader = new JLabel("Send this reply to fist for current expectation:");
+    	lRecommendedHeader.setBounds(113, 60 , 300, 20);
+    	pActions.add(lRecommendedHeader);
+    	
+        tpReplyText = new JTextPane();
+        tpReplyText.setBounds(10, 85,430, 280);
+        tpReplyText.setBackground(Color.WHITE);
+        pActions.add(tpReplyText);
+        
+    	
         bReplyInFist = new JButton();
-        bReplyInFist.setBounds(20, 20 + 1*yShift , 260, 20);
-        bReplyInFist.setText("Open reply page");
+        bReplyInFist.setBounds(95, 375 , 260, 20);
+        bReplyInFist.setText("Send Reply!");
     	pActions.add(bReplyInFist);
     	bReplyInFist.addActionListener(new ActionListener() {
 		  public void actionPerformed(ActionEvent evt) {			  
@@ -502,51 +540,64 @@ public class MainGUI2 extends JPanel
 			        public void run() {
 			        	if(getCurrentItem().getExpectNum()!=0)
 			        	{
+			        		int replyIndex = list.getSelectedIndex();
+			        		int expectIndex = cbExpectationSelect.getSelectedIndex();
+			        		errorList.get(replyIndex).setReplyText(tpReplyText.getText());
+			        		
 			        		System.setProperty("webdriver.chrome.driver", "C://schema_creation/chromedriver.exe");
 			        		WebDriver dr = new ChromeDriver();
 			        		FIST Fdriver = new FIST(sFistUser,sFistPass,sOfficeLocation,false,dr);
-			        		Fdriver.loginConfig();
-			        		Fdriver.getExpectationsPage(getCurrentItem().getFileID(),getCurrentItem().getDate());
-			        		Fdriver.errorReply((getCurrentItem().getExpectNum() +(1 - cbExpectationSelect.getSelectedIndex())), getCurrentItem().getFileID(), true);
+			        		try{
+				        		
+				        		Fdriver.loginConfig();
+				        		Fdriver.getExpectationsPage(errorList.get(replyIndex).getFileID(),errorList.get(replyIndex).getDate());
+				        		if(Fdriver.errorReply((errorList.get(replyIndex).getExpectNum() +(1 - expectIndex)), errorList.get(replyIndex).getFileID(), errorList.get(replyIndex).getReplyText()))
+				        		{
+				        			Fdriver.closeDriver();
+				        			submitResolution(errorList.get(replyIndex).getReplyText());
+				        		
+				        		if (JOptionPane.showConfirmDialog(null, "Do you want to mark this error as completed?", "Request", 
+									    JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE)
+									    == JOptionPane.YES_OPTION)
+									{
+				        			changeErrorStatus(2,errorList.get(replyIndex));
+									}
+				        		}
+				        		
+			        		}
+			        		catch(Exception e)
+			        		{
+			        			Fdriver.closeDriver();
+			        			JOptionPane.showMessageDialog(null,"There was an error while attempting to reply.");
+			        		}
 			        	}
 			                
 			            }}).start();}});
         
-    	JPanel pRecommended = new JPanel();
-    	pRecommended.setBounds(599, 79, 301, 321);
-    	pRecommended.setLayout(null);
-    	pRecommended.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-    	errorViewPanel.add(pRecommended);
-    	
-    	JLabel lRecommendedHeader = new JLabel("Recommended actions to take:");
-    	lRecommendedHeader.setBounds(58, 0 , 200, 20);
-    	pRecommended.add(lRecommendedHeader);
-    	
-        tpRecommendedAction = new JTextPane();
-        tpRecommendedAction.setBounds(10, 20, 280, 260);
-        tpRecommendedAction.setEditable(false);
-        tpRecommendedAction.setBackground(Color.WHITE);
-    	pRecommended.add(tpRecommendedAction);
-    	
-        bTakeAction = new JButton();
-        bTakeAction.setBounds(20, 290 , 260, 20);
-        bTakeAction.setText("Take Recommended Action");
-        pRecommended.add(bTakeAction);
-        
         JLabel lblStatus = new JLabel("TRIAGE STATUS:");
         lblStatus.setForeground(new Color(255, 0, 0));
         lblStatus.setFont(new Font("Tahoma", Font.BOLD, 11));
-        lblStatus.setBounds(269, 373, 110, 14);
+        lblStatus.setBounds(269, 350, 110, 14);
         errorViewPanel.add(lblStatus);
-        
+        /*
         final JComboBox comboBox = new JComboBox();
         comboBox.setBounds(209, 399, 110, 20);
         errorViewPanel.add(comboBox);
         comboBox.setModel(new DefaultComboBoxModel(new String[] {"In Progress", "Complete"}));
+        */
         
-        JButton btnNewButton = new JButton("Change Status");
-        btnNewButton.setBounds(329, 398, 127, 20);
-        errorViewPanel.add(btnNewButton);
+        JButton bIncomplete = new JButton("Incomplete");
+        bIncomplete.setBounds(154, 370, 100, 20);
+        errorViewPanel.add(bIncomplete);
+        
+        JButton bInProgress = new JButton("In Progress");
+        bInProgress.setBounds(264, 370, 100, 20);
+        errorViewPanel.add(bInProgress);
+        
+        JButton bCompleted = new JButton("Completed");
+        bCompleted.setBounds(374, 370, 100, 20);
+        errorViewPanel.add(bCompleted);
+        
         JLabel lServerName = new JLabel("Server Name:");
         lServerName.setForeground(Color.BLUE);
         lServerName.setFont(new Font("Tahoma", Font.BOLD, 11));
@@ -564,7 +615,12 @@ public class MainGUI2 extends JPanel
     	cbServerLocationSelect.setBounds(18, 166, 150, 20);
     	errorViewPanel.add(cbServerLocationSelect);
     	cbServerLocationSelect.setModel(new DefaultComboBoxModel<String>(serverStrings));
-    	
+    	cbServerLocationSelect.setSelectedIndex(selectedServerBox);
+    	cbServerLocationSelect.addActionListener (new ActionListener () {
+    	    public void actionPerformed(ActionEvent e) {
+    	        selectedServerBox=cbServerLocationSelect.getSelectedIndex();
+    	    }
+    	});
     	
     	
         bServer = new JButton();
@@ -701,15 +757,26 @@ public class MainGUI2 extends JPanel
 		tfEndTime.setEditable(false);
 		tfEndTime.setBackground(Color.WHITE);
 		
+		JPanel pResolution = new JPanel();
+		pResolution.setBounds(599, 400, 451, 241);
+		pResolution.setLayout(new BoxLayout(pResolution,BoxLayout.Y_AXIS));
+		pResolution.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+    	errorViewPanel.add(pResolution);
+    	
+    	JLabel lblResolution = new JLabel("Previously Submitted Resolution:");
+    	lblResolution.setAlignmentX(Component.CENTER_ALIGNMENT);
+		pResolution.add(lblResolution);
+		
 		textArea = new JTextArea();
 		textArea.setLineWrap(true);
 		textArea.setFont(new Font("Tahoma", Font.PLAIN, 11));
-		textArea.setBounds(647, 457, 231, 105);
-		errorViewPanel.add(textArea);
+		textArea.setBounds(10, 20, 431, 213);
 		
-		JLabel lblResolution = new JLabel("Resolution");
-		lblResolution.setBounds(734, 432, 67, 14);
-		errorViewPanel.add(lblResolution);
+		JScrollPane scroll2 = new JScrollPane (textArea, 
+ 			   JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+
+		pResolution.add(scroll2);
+		
 		
 		lblTriageDashboard = new JLabel("Triage Dashboard");
 		lblTriageDashboard.setFont(new Font("Franklin Gothic Medium", Font.BOLD, 18));
@@ -725,6 +792,12 @@ public class MainGUI2 extends JPanel
 		comboBox_1.setModel(new DefaultComboBoxModel(new String[] {"0", "1", "2", "3"}));
 		comboBox_1.setBounds(119, 55, 40, 20);
 		errorViewPanel.add(comboBox_1);
+		comboBox_1.setSelectedIndex(selectedViewPastDays);
+		comboBox_1.addActionListener (new ActionListener () {
+    	    public void actionPerformed(ActionEvent e) {
+    	    	selectedViewPastDays=comboBox_1.getSelectedIndex();
+    	    }
+    	});
 		
 		JButton btnGo = new JButton("Go!");
 		btnGo.addMouseListener(new MouseAdapter() {
@@ -783,85 +856,28 @@ public class MainGUI2 extends JPanel
 			        	Server.serverLogin(getCurrentItem().getServer(),cbServerLocationSelect.getSelectedIndex());
 			        	
 			            }}).start();}});
-        btnNewButton.addMouseListener(new MouseAdapter() {
+        
+        bIncomplete.addMouseListener(new MouseAdapter() {
         	@Override
         	public void mouseClicked(MouseEvent e) {
-        		if(comboBox.getSelectedItem().toString().equals("In Progress")){
-        			Connection connection = null;
-        	        ResultSet resultSet = null;
-        	        Statement statement = null;
-        			try {
-        	            Class.forName("org.firebirdsql.jdbc.FBDriver");
-        	            connection = DriverManager
-        	                    .getConnection(
-        	                            "jdbc:firebirdsql://NUSDD2F0J6M1:3050/C:/database/BASE.fdb",
-        	                            "sysdba", "masterkey");
-        	            statement = connection.createStatement();
-        	            statement.executeUpdate("UPDATE TRIAGE set STATUS = '1'where ERRORID = "+getCurrentItem().getErid()+"");
-        	            
-        			} catch (Exception e1) {
-        	            e1.printStackTrace();
-        	        }
-        			try {
-						createAndShowGUI2();
-					} catch (ClassNotFoundException e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
-					} catch (InstantiationException e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
-					} catch (IllegalAccessException e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
-					} catch (UnsupportedLookAndFeelException e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
-					}
-        			
-        		}
-        		if(comboBox.getSelectedItem().toString().equals("Complete")){
-        			Connection connection = null;
-        	        ResultSet resultSet = null;
-        	        Statement statement = null;
-        			try {
-        	            Class.forName("org.firebirdsql.jdbc.FBDriver");
-        	            connection = DriverManager
-        	                    .getConnection(
-        	                            "jdbc:firebirdsql://NUSDD2F0J6M1:3050/C:/database/BASE.fdb",
-        	                            "sysdba", "masterkey");
-        	            statement = connection.createStatement();
-        	            statement.executeUpdate("UPDATE TRIAGE set STATUS = '2'where ERRORID = "+getCurrentItem().getErid()+"");
-        			} catch (Exception e1) {
-        	            e1.printStackTrace();
-        	        }
-        			try {
-						createAndShowGUI2();
-					} catch (ClassNotFoundException e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
-					} catch (InstantiationException e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
-					} catch (IllegalAccessException e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
-					} catch (UnsupportedLookAndFeelException e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
-					}
-        		}
-        	//	awd
+        		changeErrorStatus(0,getCurrentItem());
         	}
         });
-    	bTakeAction.addActionListener(new ActionListener() {
-		  public void actionPerformed(ActionEvent evt) {			  
-			  new Thread(new Runnable() {
-			        public void run() {
-			        	//Run Info Gather
-			                
-			            }}).start();}});
         
-    	
+        bInProgress.addMouseListener(new MouseAdapter() {
+        	@Override
+        	public void mouseClicked(MouseEvent e) {
+        		changeErrorStatus(1,getCurrentItem());
+        	}
+        });
+        
+        bCompleted.addMouseListener(new MouseAdapter() {
+        	@Override
+        	public void mouseClicked(MouseEvent e) {
+        		changeErrorStatus(2,getCurrentItem());
+        	}
+        });
+        
     }
     
     private void selectExpectation()
@@ -902,6 +918,8 @@ public class MainGUI2 extends JPanel
         	textArea.setText("");
         	String[] DateArray = new String[0];
     	}
+    	
+    	
     	if(errorList.size()>0){
     	tfFileID.setText(getCurrentItem().getFileID());
     	textArea.setText(getCurrentItem().getResolution());
@@ -914,14 +932,9 @@ public class MainGUI2 extends JPanel
     	String[] DateArray = new String[getCurrentItem().getExpectDateList().size()];
     	DateArray = getCurrentItem().getExpectDateList().toArray(DateArray);
     	cbExpectationSelect.setModel(new DefaultComboBoxModel<String>(DateArray));
-//    	if(getCurrentItem().isGatheringInfo()==false)
-//    	{
-//    		bGatherInfo.setEnabled(true);
-//    	}
-//    	else
-//    	{
-//    		bGatherInfo.setEnabled(false);
-//    	}
+    	
+    	tpReplyText.setText(getCurrentItem().getReplyText());
+    	
     	
     	if(getCurrentItem().getExpectNum()==0)
     	{
@@ -1124,6 +1137,7 @@ public class MainGUI2 extends JPanel
     private static void createAndShowGUI() throws ClassNotFoundException, InstantiationException, IllegalAccessException, UnsupportedLookAndFeelException {
 
         //Create and set up the window.
+    	previousIndex=0;
         frame = new JFrame("Triage Dashboard");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         window = new MainGUI2();
@@ -1141,12 +1155,17 @@ public class MainGUI2 extends JPanel
     	
     	frame.getContentPane().removeAll();
     	index = list.getSelectedValue().getErid();
+    	frameSize = window.getPane().getSize();
+    	String ReplyText = tpReplyText.getText();
+    //	int expectIndex = cbExpectationSelect.getSelectedIndex();
     	window = new MainGUI2();
         frame.getContentPane().add(window.getPane());
 
         //Display the window.
         frame.pack();
         frame.setVisible(true);
+      //  cbExpectationSelect.setSelectedIndex(expectIndex);
+        tpReplyText.setText(ReplyText);
     }
 
     public static void main(String[] args) {
@@ -1229,6 +1248,79 @@ public class MainGUI2 extends JPanel
 	   	getCurrentItem().getEndTimeList().clear();
 	   	getCurrentItem().getAnalystNameList().clear();
    }
+   
+   public void submitResolution(String resolution)
+   {
+	   Connection connection = null;
+       ResultSet resultSet = null;
+       Statement statement = null;
+		try {
+           Class.forName("org.firebirdsql.jdbc.FBDriver");
+           connection = DriverManager
+                   .getConnection(
+                           "jdbc:firebirdsql://NUSDD2F0J6M1:3050/C:/database/BASE.fdb",
+                           "sysdba", "masterkey");
+           statement = connection.createStatement();
+           statement.executeUpdate("UPDATE TRIAGE set RESOLUTION = '"+resolution+"'where ERRORID = "+getCurrentItem().getErid()+"");
+           
+		} catch (Exception e1) {
+           e1.printStackTrace();
+       }
+		try {
+			createAndShowGUI2();
+		} catch (ClassNotFoundException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (InstantiationException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (IllegalAccessException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (UnsupportedLookAndFeelException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		
+		
+	}
+   }
+   
+   public void changeErrorStatus(int Status, ListItem item)
+   {
+	   Connection connection = null;
+       ResultSet resultSet = null;
+       Statement statement = null;
+		try {
+           Class.forName("org.firebirdsql.jdbc.FBDriver");
+           connection = DriverManager
+                   .getConnection(
+                           "jdbc:firebirdsql://NUSDD2F0J6M1:3050/C:/database/BASE.fdb",
+                           "sysdba", "masterkey");
+           statement = connection.createStatement();
+           statement.executeUpdate("UPDATE TRIAGE set STATUS = '"+Status+"'where ERRORID = "+item.getErid()+"");
+           
+		} catch (Exception e1) {
+           e1.printStackTrace();
+       }
+		try {
+			createAndShowGUI2();
+		} catch (ClassNotFoundException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (InstantiationException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (IllegalAccessException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (UnsupportedLookAndFeelException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		
+		
+	}
+   }
+   
    public static  void updater(){
 	   ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor();
 		exec.scheduleAtFixedRate(new Runnable() {

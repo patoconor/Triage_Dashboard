@@ -520,12 +520,12 @@ public class MainGUI extends JPanel
     	pActions.setBorder(BorderFactory.createLineBorder(Color.BLACK));
     	errorViewPanel.add(pActions);
     	
-    	JLabel lActionHeader = new JLabel("Reply to                                     expectation in FIST:");
-    	lActionHeader.setBounds(18, 0 , 300, 20);
+    	JLabel lActionHeader = new JLabel("Reply to                                 expectation in FIST:");
+    	lActionHeader.setBounds(35, 0 , 300, 20);
     	pActions.add(lActionHeader);
     	
     	JLabel lActionHeader2 = new JLabel("currently selected");
-    	lActionHeader2.setBounds(67, 0 , 150, 20);
+    	lActionHeader2.setBounds(81, 0 , 150, 20);
     	pActions.add(lActionHeader2);
     	Font font = lActionHeader2.getFont();
     	Map attributes = font.getAttributes();
@@ -548,7 +548,7 @@ public class MainGUI extends JPanel
 			        		FIST Fdriver = new FIST(sFistUser,sFistPass,sOfficeLocation,false,dr);
 			        		Fdriver.loginConfig();
 			        		Fdriver.getExpectationsPage(getCurrentItem().getFileID(),getCurrentItem().getDate());
-			        		Fdriver.errorReply((getCurrentItem().getExpectNum() +(1 - cbExpectationSelect.getSelectedIndex())), getCurrentItem().getFileID(), true);
+			        	//	Fdriver.errorReply((getCurrentItem().getExpectNum() +(1 - cbExpectationSelect.getSelectedIndex())), getCurrentItem().getFileID(), true);
 			        	}
 			            }}).start();}});
         
@@ -566,7 +566,7 @@ public class MainGUI extends JPanel
 			        		FIST Fdriver = new FIST(sFistUser,sFistPass,sOfficeLocation,false,dr);
 			        		Fdriver.loginConfig();
 			        		Fdriver.getExpectationsPage(getCurrentItem().getFileID(),getCurrentItem().getDate());
-			        		Fdriver.errorReply((getCurrentItem().getExpectNum() +(1 - cbExpectationSelect.getSelectedIndex())), getCurrentItem().getFileID(), true);
+			        	//	Fdriver.errorReply((getCurrentItem().getExpectNum() +(1 - cbExpectationSelect.getSelectedIndex())), getCurrentItem().getFileID(), true);
 			        	}
 			                
 			            }}).start();}});
