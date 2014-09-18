@@ -17,12 +17,19 @@ import javax.swing.event.*;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 
+import com.wm.util.FileUtil;
+
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 
 //Test Commit
@@ -37,81 +44,91 @@ public class MainGUI extends JPanel
 	private String sServerUser;
 	private String sServerPass;
 	private String sOfficeLocation;
-	
-	
+	private static JScrollPane errorListScroll;
+	private static MainGUI window;
 	private JSplitPane splitPane;
     private JSplitPane splitPaneBottom;
-    
+    private static Boolean hideComplete = false;
     private JButton bRefreshList;
     private JButton bChangeCredentials;
 	private JButton bOptions;
 	
-    
-    private JList<ListItem> list;
+    private static String daysPast;
+    private static JList<ListItem> list;
     private JPanel errorViewPanel;
     private JPanel pCredentials;
     
-    DefaultListModel<ListItem> errorList;
-    private JButton bGatherInfo;
+    private static DefaultListModel<ListItem> errorList;
+  //variables to keep stuff the same on refresh
+    private static int index = 0;
+    private static int selectedViewPastDays=0;
+    private static int selectedServerBox=0;
+    private static Dimension frameSize= new Dimension(1220, 671);
     
     private JTextField tfFileID;
     private JTextField tfFailTime;
     private JTextField tfServiceName;
     private JTextField tfDeveloperName;
     
-    
+    private JComboBox<String> comboBox_1;
     private JTextField tfExpectationID;
     private JTextField tfEnvironment;
     private JTextField tfAnalystName;
     private JTextField tfExpectStatus;
     private JTextField tfStartTime;
     private JTextField tfEndTime;
-   
+    private JTextArea textArea;
     private JTextField tfServerName;
     private JComboBox<String> cbServerLocationSelect;
     private JButton bServer;
     
-    private JComboBox<String> cbExpectationSelect;
+    private static JComboBox<String> cbExpectationSelect;
     private JButton bViewExpectations;
-    
-    private JTextPane tpErrorText;
     
     private JButton bLookingIntoIt;
     private JButton bReplyInFist;
-    private JTextPane tpRecommendedAction;
+    private static JTextPane tpReplyText;
+    private static int previousIndex;
     private JButton bTakeAction;
+    private static String dateSelect;
+    private static String currentDate;
     
-    
-    private JDialog dCred;
+	private JDialog dCred;
     String[] textData= new String[5];
+    private JLabel lblTriageDashboard;
+    private JTextArea textArea_1;
+    private JToggleButton tglbtnNewToggleButton;
         
     
     
-    public MainGUI() {
+    public MainGUI() throws ClassNotFoundException, InstantiationException, IllegalAccessException, UnsupportedLookAndFeelException {
 
-    	
+    	UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
     	
     	//list of errors in left pane
     	errorList= new DefaultListModel<>();
-    	if(new File("C://Triage_Dashboard//ActiveErrors.txt").isFile()==true)
-    	{
     	setupList();
-    	}
+    	int setindex = 0;
         list = new JList<>(errorList);
-        list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        list.setSelectedIndex(0);
+        for(int i = 0; i<errorList.size();i++){
+        	if(errorList.get(i).getErid()==index){
+        		setindex = i;
+        		previousIndex=i;
+        	}
+        }
+        list.setSelectedIndex(setindex);
+        list.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
         list.addListSelectionListener(this);
         list.setCellRenderer(new ListItemRenderer());
         
         //right panel for viewing error details
         errorViewPanel = new JPanel();
-        errorViewPanel.setLayout(null);
-        errorViewPanel.setPreferredSize(new Dimension(899, 559));
+        errorViewPanel.setPreferredSize(new Dimension(1049, 640));
         
         //bottom panel for credentials and options
         pCredentials = new JPanel();
-        pCredentials.setLayout(new GridLayout(0,3,10,0));
-        pCredentials.setMinimumSize(new Dimension(0,1*screenSize.height/30));
+        pCredentials.setLayout(new GridLayout(0,4,10,0));
+        pCredentials.setMinimumSize(new Dimension(0,20));
         
         bRefreshList = new JButton();
         bRefreshList.setText("Refresh List");
@@ -120,9 +137,52 @@ public class MainGUI extends JPanel
 		  public void actionPerformed(ActionEvent evt) {			  
 			  new Thread(new Runnable() {
 			        public void run() {
-			        	setupList();
+			        	try {
+							createAndShowGUI2();
+						} catch (ClassNotFoundException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} catch (InstantiationException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} catch (IllegalAccessException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} catch (UnsupportedLookAndFeelException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
 			                
 			            }}).start();}});
+        
+        tglbtnNewToggleButton = new JToggleButton("Hide/Show Completed");
+        tglbtnNewToggleButton.addMouseListener(new MouseAdapter() {
+        	@Override
+        	public void mouseClicked(MouseEvent e) {
+        		if(hideComplete == false){
+        			hideComplete = true;
+        		}
+        		else{
+        			hideComplete = false;
+        		}
+        		try {
+					createAndShowGUI2();
+				} catch (ClassNotFoundException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				} catch (InstantiationException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				} catch (IllegalAccessException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				} catch (UnsupportedLookAndFeelException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+        	}
+        });
+        pCredentials.add(tglbtnNewToggleButton);
         
         bChangeCredentials = new JButton();
         bChangeCredentials.setText("Change Credentials");
@@ -145,25 +205,53 @@ public class MainGUI extends JPanel
         
         
     	bOptions = new JButton();
-    	bOptions.setText("Options");
+    	bOptions.setText("Update");
         pCredentials.add(bOptions);
         bOptions.addActionListener(new ActionListener() {
 		  public void actionPerformed(ActionEvent evt) {			  
 			  new Thread(new Runnable() {
 			        public void run() {
-			        	//Run
+			        	int value = (JOptionPane.showConfirmDialog(
+			                    frame,
+			                      "Are you sure you want to update? This will close the program.",
+			                      "Warning",
+			                      JOptionPane.YES_NO_OPTION));
+			                if (value == JOptionPane.YES_OPTION) {
+			                  if(new File("C://Triage_Dashboard/updateTD.bat").isFile()==false){
+			                    File source2 = new File("R://BenIT/Files/All/Tools/TriageDashboard/updateTD.bat");
+			                    File desc1 = new File("C://Triage_Dashboard/updateTD.bat");
+			                    try {
+			                      FileUtil.copyTo(source2, desc1);
+			                    } catch (IOException e1) {
+			                      // TODO Auto-generated catch block
+			                      e1.printStackTrace();
+			                    }
+			                  }
+			                  
+			                  
+			                  try {
+			                    Runtime.getRuntime().exec("cmd /c start C://Triage_Dashboard/updateTD.bat");
+			                    System.exit(0);
+			                  } catch (IOException e1) {
+			                    // TODO Auto-generated catch block
+			                    e1.printStackTrace();
+			                  }
+			                }else if (value == JOptionPane.NO_OPTION) {
+			                }
 			                
+
+
 			            }}).start();}});
         
         //left pane
-        JScrollPane errorListScroll = new JScrollPane(list);
+        errorListScroll = new JScrollPane(list);
         //right pane
         JScrollPane errorViewScroll = new JScrollPane(errorViewPanel);
         
         //Create a vertically split pane with the two scroll panes in it.
         splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,	errorListScroll, errorViewScroll);
         splitPane.setOneTouchExpandable(true);
-        splitPane.setDividerLocation(190);
+        splitPane.setDividerLocation(161);
         //splitPane.setMinimumSize(new Dimension(1*screenSize.width/6, 1*screenSize.height/6));
 
         //create a horizontally split pane for the credentials and options
@@ -171,9 +259,9 @@ public class MainGUI extends JPanel
         splitPaneBottom.setOneTouchExpandable(false);
         splitPaneBottom.setEnabled(false);
         splitPaneBottom.setResizeWeight(1);
-    
+        splitPaneBottom.setMinimumSize(new Dimension(1*screenSize.width/6, 1*screenSize.height/6));
         //Provide a preferred size for the split pane.
-        splitPane.setPreferredSize(new Dimension(1103, 564));
+        splitPaneBottom.setPreferredSize(frameSize);
         
         
 	    credCheck();
@@ -191,7 +279,7 @@ public class MainGUI extends JPanel
         
     }
     
-    public void setupList()
+    public static void setupList()
     {
     	
     	/*
@@ -199,11 +287,15 @@ public class MainGUI extends JPanel
     	li.setFileID("63001");
     	errorList.addElement(li);
     	*/
-    	
     	BufferedReader br;
     	String line;
-    	
-    	
+    	System.out.println(daysPast);
+//    	if(errorList.size()>0){
+//    		for(int i=0;i<errorList.size();i++){
+//    		errorList.remove(i);
+//    		}
+//    		errorList= new DefaultListModel<>();
+//    	}
     	Connection connection = null;
         ResultSet resultSet = null;
         Statement statement = null;
@@ -215,13 +307,30 @@ public class MainGUI extends JPanel
 	                            "jdbc:firebirdsql://NUSDD2F0J6M1:3050/C:/database/BASE.fdb",
 	                            "sysdba", "masterkey");
 	            statement = connection.createStatement();
-	            resultSet = statement.executeQuery("select DISTINCT * from TRIAGE");
+	            Date d = new Date();
+            	Calendar c = Calendar.getInstance();
+                c.setTime(d);
+                c.add(Calendar.DATE, -Integer.parseInt(daysPast));
+                d.setTime( c.getTime().getTime() );
+                DateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy");
+                setDateSelect(dateFormat.format(d));
+                String one = "select DISTINCT * from TRIAGE WHERE ERDATE >= '"+dateSelect+"' order by ERDATE desc, ERTIME desc";
+                String two = "select DISTINCT * from TRIAGE WHERE ERDATE >= '"+dateSelect+"' AND STATUS != 2 order by ERDATE desc, ERTIME desc";
+	            String finalone = "";
+                if(hideComplete==true){
+                	finalone = two;
+	            }
+                if(hideComplete==false){
+                	finalone = one;
+                }
+                resultSet = statement.executeQuery(finalone);
 	            //statement.executeUpdate("INSERT INTO TRIAGE (FILEID, STATUS, ERDATE, ERTIME, SERVER, LOCATION, DEVELOPER, FIST) VALUES ('"+fileID+"', '"+status+"', '"+date+"', '"+time+"', '"+server+"', '"+serviceLocation+"', '"+devName+"', '"+FullLine+"')");
 	            while(resultSet.next()){
 	            	String text = resultSet.getString("FILEID")+"|"+resultSet.getString("STATUS")+"|"+resultSet.getString("ERDATE")+"|"+resultSet.getString("ERTIME")+"|"+resultSet.getString("SERVER")+"|"+resultSet.getString("LOCATION")+"|"+resultSet.getString("DEVELOPER")+"|"+resultSet.getString("ERROR")+"|"+resultSet.getString("STACK")+"|"+resultSet.getString("FIST");
 	            	int erid = resultSet.getInt("ERRORID");
+	            	String res = resultSet.getString("RESOLUTION");
 	            	System.out.println(text);
-	            	errorList.addElement(new ListItem(text,erid,""));
+	            	errorList.addElement(new ListItem(text,erid,res));
 	            }
 	        } catch (Exception e) {
 	            e.printStackTrace();
@@ -236,7 +345,38 @@ public class MainGUI extends JPanel
 		}finally{
 			
 		}
-			
+//		Connection connection1 = null;
+//        ResultSet resultSet1 = null;
+//        Statement statement1 = null;
+//		try {
+//			try {
+//	            Class.forName("org.firebirdsql.jdbc.FBDriver");
+//	            connection1 = DriverManager
+//	                    .getConnection(
+//	                            "jdbc:firebirdsql://L4DWIPDS011.hewitt.com:13163",
+//	                            "poconor", "Spektor29!");
+//	            statement1 = connection1.createStatement();
+//	            resultSet1 = statement1.executeQuery("SELECT TOP 1000 [msg_id],[msg_severity],[msg_mtid],[msg_fileid],[msg_expectid],[msg_expect_iteration],[msg_filename],[msg_procdttime],[msg_isprocessed],[msg_toaddressoverride],[msg_addldetails],[msg_inserted_dttime]FROM [FileConfig].[dbo].[messageQ]WHERE msg_toaddressoverride NOT LIKE '%phuong.dam@aonhewitt.com%' and msg_inserted_dttime > '2014-09-02'  AND msg_toaddressoverride NOT LIKE '%rob.neilson@aonhewitt.com%'  AND msg_toaddressoverride NOT LIKE '%tammy.adams@aonhewitt.com%'  AND msg_toaddressoverride NOT LIKE '%jon.petit@aonhewitt.com%'  AND msg_toaddressoverride NOT LIKE '%rob.neilson@aonhewitt.com%' AND msg_toaddressoverride NOT LIKE '%sethiya.um@aonhewitt.com%'AND msg_toaddressoverride NOT LIKE '%chad.smith@aonhewitt.com%'AND msg_toaddressoverride NOT LIKE '%art.feld@aonhewitt.com% AND msg_addldetails NOT LIKE '%Your document has been received,%'AND msg_addldetails NOT LIKE '%No valid Expectations found% AND msg_addldetails NOT LIKE '%completed successfully.%'AND msg_addldetails NOT LIKE '%is completed successfully% AND msg_addldetails NOT LIKE '%Promoting audit profile% AND msg_addldetails NOT LIKE '%Removed expiration date% AND msg_expect_iteration NOT LIKE 'NULL' order by msg_inserted_dttime desc");
+//	            //statement.executeUpdate("INSERT INTO TRIAGE (FILEID, STATUS, ERDATE, ERTIME, SERVER, LOCATION, DEVELOPER, FIST) VALUES ('"+fileID+"', '"+status+"', '"+date+"', '"+time+"', '"+server+"', '"+serviceLocation+"', '"+devName+"', '"+FullLine+"')");
+//	            while(resultSet1.next()){
+//	            	String text = resultSet1.getString("msg_id");
+//	            	System.out.println(text);
+//	            }
+//	        } catch (Exception e) {
+//	            e.printStackTrace();
+//	        } finally {
+//	            try {
+//	                statement1.close();
+//	                connection1.close();
+//	            } catch (Exception e) {
+//	                e.printStackTrace();
+//	            }
+//	        }
+//		}finally{
+//			
+//		}
+		
+		
     }
 //			br = new BufferedReader(new FileReader("A://Triage_Dashboard//ActiveErrors.txt"));
 //			//br = new BufferedReader(new FileReader("R://BenIT//Files//All//WMInstall//ActiveErrors.txt"));
@@ -283,249 +423,72 @@ public class MainGUI extends JPanel
     
     //Listens to the list
     public void valueChanged(ListSelectionEvent e) {
+    	if(previousIndex>errorList.size()){
+    		previousIndex = 0;
+    	}
+    	errorList.get(previousIndex).setReplyText(tpReplyText.getText());
         populateErrorPanel();
-        
+        previousIndex=list.getSelectedIndex();
     }
     
-    public ListItem getCurrentItem()
+    public static ListItem getCurrentItem()
     {
     	return errorList.get(list.getSelectedIndex());
     }
+    public static ArrayList<ListItem> getCurrentItems(){
+    	ArrayList<ListItem> items = new ArrayList<ListItem>();
+    	for(int i=0;i<errorList.size();i++){
+    		if(list.isSelectedIndex(i)){
+    			items.add(errorList.get(i));
+    		}
+    	}
+    	return items;
+    }
+    
     
     //Shows the corresponding information for a selected error
     private void setupErrorPanel() {
-    	
-    	JPanel pGatherArea = new JPanel();
-    	pGatherArea.setBounds(-1,-1,301,61);
-    	pGatherArea.setLayout(null);
-    	pGatherArea.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-    	errorViewPanel.add(pGatherArea);
-    	
-    	bGatherInfo = new JButton();
-    	bGatherInfo.setBounds(10, 10 , 280,40);
-    	bGatherInfo.setText("Gather Info");
-    	pGatherArea.add(bGatherInfo);
-    	bGatherInfo.addActionListener(new ActionListener() {
-		  public void actionPerformed(ActionEvent evt) {			  
-			  new Thread(new Runnable() {
-			        public void run() {
-			            }}).start();}});
-		
-    	
-    	JPanel pInfoFields = new JPanel();
-    	pInfoFields.setBounds(299,-1,301,131);
-    	
-    	pInfoFields.setLayout(null);
-    	pInfoFields.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-    	errorViewPanel.add(pInfoFields);
+    	errorViewPanel.setLayout(null);
     	
     	int yShift=30;
-    	
-        tfFileID = new JTextField();
-        tfFileID.setBounds(50,10, 50, 20);
-        tfFileID.setEditable(false);
-        tfFileID.setBackground(Color.WHITE);
-        pInfoFields.add(tfFileID);
-		JLabel lFileID = new JLabel("File ID:");
-		lFileID.setBounds(10, 10, 100, 20);
-		pInfoFields.add(lFileID);
-        
-        
-		
-		tfFailTime = new JTextField();
-		tfFailTime.setBounds(110, 10 + 1*yShift, 180, 20);
-		tfFailTime.setEditable(false);
-		tfFailTime.setBackground(Color.WHITE);
-        pInfoFields.add(tfFailTime);
-		JLabel lFailTime = new JLabel("Error Date/Time:");
-		lFailTime.setBounds(10, 10 +1*yShift, 100, 20);
-		pInfoFields.add(lFailTime);
-		
-        
-		
-		tfServiceName = new JTextField();
-		tfServiceName.setBounds(70, 10 + 2*yShift, 220, 20);
-		tfServiceName.setEditable(false);
-		tfServiceName.setBackground(Color.WHITE);
-        pInfoFields.add(tfServiceName);
-		JLabel lServiceName = new JLabel("Location:");
-		lServiceName.setBounds(10, 10 +2*yShift, 100, 20);
-		pInfoFields.add(lServiceName);
-		
-		tfDeveloperName = new JTextField();
-        tfDeveloperName.setBounds(77, 10 + 3*yShift, 213, 20);
-        tfDeveloperName.setEditable(false);
-        tfDeveloperName.setBackground(Color.WHITE);
-        pInfoFields.add(tfDeveloperName);
-		JLabel lDeveloperName = new JLabel("Developer:");
-		lDeveloperName.setBounds(10, 10 +3*yShift, 100, 20);
-		pInfoFields.add(lDeveloperName);
-		
-		
-		
-		JPanel pExpectations = new JPanel();
-		pExpectations.setBounds(-1,129,601,131);
-		pExpectations.setLayout(null);
-		pExpectations.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-    	errorViewPanel.add(pExpectations);
-    	
-		
-		cbExpectationSelect = new JComboBox <String> ();
-		cbExpectationSelect.setBounds(115, 10, 174, 20);
-		pExpectations.add(cbExpectationSelect);
-		JLabel lExpectationSelect = new JLabel("Pick Expectation:");
-		lExpectationSelect.setBounds(10,10, 100, 20);
-		pExpectations.add(lExpectationSelect);
-		
-		cbExpectationSelect.addActionListener(new ActionListener() {
-			  public void actionPerformed(ActionEvent evt) {			  
-				  getCurrentItem().setSelectedExpectNum(cbExpectationSelect.getSelectedIndex());
-				  selectExpectation();
-			  
-			  
-			  }});
-		
-		bViewExpectations = new JButton();
-		bViewExpectations.setBounds(362, 10, 228, 20);
-		bViewExpectations.setText("Open Expectations Page");
-		pExpectations.add(bViewExpectations);
-    	bViewExpectations.addActionListener(new ActionListener() {
-		  public void actionPerformed(ActionEvent evt) {			  
-			  new Thread(new Runnable() {
-			        public void run() {
-			        	WebDriver dr = new ChromeDriver();
-			        	FIST Fdriver = new FIST(sFistUser,sFistPass,sOfficeLocation,false,dr);
-			        	Fdriver.loginConfig();
-			        	Fdriver.getExpectationsPage(getCurrentItem().getFileID(),getCurrentItem().getDate());
-			                
-			            }}).start();}});
-		
-    	tfExpectationID = new JTextField();
-        tfExpectationID.setBounds(100,10 + 1*yShift, 80, 20);
-        tfExpectationID.setEditable(false);
-        tfExpectationID.setBackground(Color.WHITE);
-        pExpectations.add(tfExpectationID);
-		JLabel lExpectationID = new JLabel("Expectation ID:");
-		lExpectationID.setBounds(10, 10 + 1*yShift, 100, 20);
-		pExpectations.add(lExpectationID);
-		
-		tfExpectStatus = new JTextField();
-		tfExpectStatus.setBounds(56,10 + 2*yShift, 234, 20);
-		tfExpectStatus.setEditable(false);
-		tfExpectStatus.setBackground(Color.WHITE);
-        pExpectations.add(tfExpectStatus);
-		JLabel lExpectStatus = new JLabel("Status:");
-		lExpectStatus.setBounds(10, 10 + 2*yShift, 100, 20);
-		pExpectations.add(lExpectStatus);
-		
-		tfStartTime = new JTextField();
-		tfStartTime.setBounds(380, 10 + 2*yShift, 210, 20);
-		tfStartTime.setEditable(false);
-		tfStartTime.setBackground(Color.WHITE);
-        pExpectations.add(tfStartTime);
-		JLabel lStartTime = new JLabel("Start Time:");
-		lStartTime.setBounds(310, 10 + 2*yShift, 100, 20);
-		pExpectations.add(lStartTime);
-		
-		tfEndTime = new JTextField();
-		tfEndTime.setBounds(380, 10 + 3*yShift, 210, 20);
-		tfEndTime.setEditable(false);
-		tfEndTime.setBackground(Color.WHITE);
-        pExpectations.add(tfEndTime);
-		JLabel lEndTime = new JLabel("End Time:");
-		lEndTime.setBounds(310, 10 + 3*yShift, 100, 20);
-		pExpectations.add(lEndTime);
-		
-        tfAnalystName = new JTextField();
-        tfAnalystName.setBounds(362, 10 + 1*yShift, 228, 20);
-        tfAnalystName.setEditable(false);
-        tfAnalystName.setBackground(Color.WHITE);
-        pExpectations.add(tfAnalystName);
-		JLabel lAnalystName = new JLabel("Analyst:");
-		lAnalystName.setBounds(310, 10 + 1*yShift, 100, 20);
-		pExpectations.add(lAnalystName);
-        
-		tfEnvironment = new JTextField();
-        tfEnvironment.setBounds(90, 10 + 3*yShift, 200 , 20);
-        tfEnvironment.setEditable(false);
-        tfEnvironment.setBackground(Color.WHITE);
-        pExpectations.add(tfEnvironment);
-		JLabel lEnvironment = new JLabel("Environment:");
-		lEnvironment.setBounds(10, 10 +3*yShift, 100, 20);
-		pExpectations.add(lEnvironment);
-		
-        
-		
-		JPanel pServer = new JPanel();
-		pServer.setBounds(-1,59,301,71);
-		pServer.setLayout(null);
-		pServer.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-    	errorViewPanel.add(pServer);
-        
-    	tfServerName = new JTextField();
-    	tfServerName.setBounds(93, 10, 197, 20);
-    	tfServerName.setEditable(false);
-    	tfServerName.setBackground(Color.WHITE);
-    	pServer.add(tfServerName);
-		JLabel lServerName = new JLabel("Server Name:");
-		lServerName.setBounds(10, 10 , 100, 20);
-		pServer.add(lServerName);
-		
-		
-		cbServerLocationSelect = new JComboBox <String> ();
-		cbServerLocationSelect.setBounds(10, 10 + 1*yShift , 150, 20);
-		pServer.add(cbServerLocationSelect);
 		String [] serverStrings = {"View Server","View Server Log","View Error Log"};
-		cbServerLocationSelect.setModel(new DefaultComboBoxModel<String>(serverStrings));
-		
-		
-		
-        bServer = new JButton();
-        bServer.setBounds(170, 10 + 1*yShift , 110, 20);
-        bServer.setText("View");
-        pServer.add(bServer);
-    	bServer.addActionListener(new ActionListener() {
-		  public void actionPerformed(ActionEvent evt) {			  
-			  new Thread(new Runnable() {
-			        public void run() {
-			        	Server.user=sServerUser;
-			        	Server.pw=sServerPass;			        	
-			        	Server.serverLogin(getCurrentItem().getServer(),cbServerLocationSelect.getSelectedIndex());
-			        	
-			            }}).start();}});
         
     	
         JPanel pErrorInfo = new JPanel();
-        pErrorInfo.setBounds(-1,259,601,301);
-        pErrorInfo.setLayout(null);
+        pErrorInfo.setBounds(-1, 400, 601, 241);
+        pErrorInfo.setLayout(new BoxLayout(pErrorInfo,BoxLayout.Y_AXIS));
         pErrorInfo.setBorder(BorderFactory.createLineBorder(Color.BLACK));
     	errorViewPanel.add(pErrorInfo);
     	
     	
     	JLabel lErrorHeader = new JLabel("Error Information:");
-    	lErrorHeader.setBounds(250, 0 , 100, 20);
+    	lErrorHeader.setAlignmentX(Component.CENTER_ALIGNMENT);
     	pErrorInfo.add(lErrorHeader);
     	
+    	textArea_1 = new JTextArea();
+    	textArea_1.setFont(new Font("Tahoma", Font.PLAIN, 11));
+    	textArea_1.setLineWrap(true);
+    	textArea_1.setBounds(10, 20, 582, 213);
+    	textArea_1.setWrapStyleWord(true);
     	
-    	tpErrorText = new JTextPane();
-    	tpErrorText.setBounds(10, 20, 580, 270);
-    	tpErrorText.setEditable(false);
-    	tpErrorText.setBackground(Color.WHITE);
-    	pErrorInfo.add(tpErrorText);
+    	JScrollPane scroll = new JScrollPane (textArea_1, 
+    			   JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+
+    	pErrorInfo.add(scroll);
     	
     	
     	JPanel pActions = new JPanel();
-    	pActions.setBounds(599,-1,301,81);
+    	pActions.setBounds(599, -1, 451, 402);
     	pActions.setLayout(null);
     	pActions.setBorder(BorderFactory.createLineBorder(Color.BLACK));
     	errorViewPanel.add(pActions);
     	
     	JLabel lActionHeader = new JLabel("Reply to                                 expectation in FIST:");
-    	lActionHeader.setBounds(35, 0 , 300, 20);
+    	lActionHeader.setBounds(110, 0 , 300, 20);
     	pActions.add(lActionHeader);
     	
     	JLabel lActionHeader2 = new JLabel("currently selected");
-    	lActionHeader2.setBounds(81, 0 , 150, 20);
+    	lActionHeader2.setBounds(156, 0 , 150, 20);
     	pActions.add(lActionHeader2);
     	Font font = lActionHeader2.getFont();
     	Map attributes = font.getAttributes();
@@ -535,7 +498,7 @@ public class MainGUI extends JPanel
     	
     	
     	bLookingIntoIt = new JButton();
-    	bLookingIntoIt.setBounds(20, 20 , 260, 20);
+    	bLookingIntoIt.setBounds(95, 20 , 260, 20);
     	bLookingIntoIt.setText("Reply \"Looking into it...\"");
     	pActions.add(bLookingIntoIt);
         bLookingIntoIt.addActionListener(new ActionListener() {
@@ -544,17 +507,44 @@ public class MainGUI extends JPanel
 			        public void run() {
 			        	if(getCurrentItem().getExpectNum()!=0)
 			        	{
+			        		int replyIndex = list.getSelectedIndex();
+			        		int expectIndex = cbExpectationSelect.getSelectedIndex();
+			        		
+			        		
+			        		System.setProperty("webdriver.chrome.driver", "C://schema_creation/chromedriver.exe");
 			        		WebDriver dr = new ChromeDriver();
 			        		FIST Fdriver = new FIST(sFistUser,sFistPass,sOfficeLocation,false,dr);
-			        		Fdriver.loginConfig();
-			        		Fdriver.getExpectationsPage(getCurrentItem().getFileID(),getCurrentItem().getDate());
-			        	//	Fdriver.errorReply((getCurrentItem().getExpectNum() +(1 - cbExpectationSelect.getSelectedIndex())), getCurrentItem().getFileID(), true);
+			        		try{
+				        		
+				        		Fdriver.loginConfig();
+				        		Fdriver.getExpectationsPage(errorList.get(replyIndex).getFileID(),errorList.get(replyIndex).getDate());
+				        		if(Fdriver.errorReply((errorList.get(replyIndex).getExpectNum() +(1 - expectIndex)), errorList.get(replyIndex).getFileID(), "Looking into it..."))
+				        		{
+				        		Fdriver.closeDriver();
+				        		changeErrorStatus(1,errorList.get(replyIndex));
+				        		}
+			        		}
+			        		catch(Exception e)
+			        		{
+			        			Fdriver.closeDriver();
+			        			JOptionPane.showMessageDialog(null,"There was an error while attempting to reply.");
+			        		}
 			        	}
 			            }}).start();}});
         
+        JLabel lRecommendedHeader = new JLabel("Send this reply to fist for current expectation:");
+    	lRecommendedHeader.setBounds(113, 60 , 300, 20);
+    	pActions.add(lRecommendedHeader);
+    	
+        tpReplyText = new JTextPane();
+        tpReplyText.setBounds(10, 85,430, 280);
+        tpReplyText.setBackground(Color.WHITE);
+        pActions.add(tpReplyText);
+        
+    	
         bReplyInFist = new JButton();
-        bReplyInFist.setBounds(20, 20 + 1*yShift , 260, 20);
-        bReplyInFist.setText("Open reply page");
+        bReplyInFist.setBounds(95, 375 , 260, 20);
+        bReplyInFist.setText("Send Reply!");
     	pActions.add(bReplyInFist);
     	bReplyInFist.addActionListener(new ActionListener() {
 		  public void actionPerformed(ActionEvent evt) {			  
@@ -562,44 +552,344 @@ public class MainGUI extends JPanel
 			        public void run() {
 			        	if(getCurrentItem().getExpectNum()!=0)
 			        	{
+			        		int replyIndex = list.getSelectedIndex();
+			        		int expectIndex = cbExpectationSelect.getSelectedIndex();
+			        		errorList.get(replyIndex).setReplyText(tpReplyText.getText());
+			        		
+			        		System.setProperty("webdriver.chrome.driver", "C://schema_creation/chromedriver.exe");
 			        		WebDriver dr = new ChromeDriver();
 			        		FIST Fdriver = new FIST(sFistUser,sFistPass,sOfficeLocation,false,dr);
-			        		Fdriver.loginConfig();
-			        		Fdriver.getExpectationsPage(getCurrentItem().getFileID(),getCurrentItem().getDate());
-			        	//	Fdriver.errorReply((getCurrentItem().getExpectNum() +(1 - cbExpectationSelect.getSelectedIndex())), getCurrentItem().getFileID(), true);
+			        		try{
+				        		
+				        		Fdriver.loginConfig();
+				        		Fdriver.getExpectationsPage(errorList.get(replyIndex).getFileID(),errorList.get(replyIndex).getDate());
+				        		if(Fdriver.errorReply((errorList.get(replyIndex).getExpectNum() +(1 - expectIndex)), errorList.get(replyIndex).getFileID(), errorList.get(replyIndex).getReplyText()))
+				        		{
+				        			Fdriver.closeDriver();
+				        			submitResolution(errorList.get(replyIndex).getReplyText());
+				        		
+				        		if (JOptionPane.showConfirmDialog(null, "Do you want to mark this error as completed?", "Request", 
+									    JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE)
+									    == JOptionPane.YES_OPTION)
+									{
+				        			changeErrorStatus(2,errorList.get(replyIndex));
+									}
+				        		}
+				        		
+			        		}
+			        		catch(Exception e)
+			        		{
+			        			Fdriver.closeDriver();
+			        			JOptionPane.showMessageDialog(null,"There was an error while attempting to reply.");
+			        		}
 			        	}
 			                
 			            }}).start();}});
         
-    	JPanel pRecommended = new JPanel();
-    	pRecommended.setBounds(599,79,301,321);
-    	pRecommended.setLayout(null);
-    	pRecommended.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-    	errorViewPanel.add(pRecommended);
+        JLabel lblStatus = new JLabel("TRIAGE STATUS:");
+        lblStatus.setForeground(new Color(255, 0, 0));
+        lblStatus.setFont(new Font("Tahoma", Font.BOLD, 11));
+        lblStatus.setBounds(269, 350, 110, 14);
+        errorViewPanel.add(lblStatus);
+        /*
+        final JComboBox comboBox = new JComboBox();
+        comboBox.setBounds(209, 399, 110, 20);
+        errorViewPanel.add(comboBox);
+        comboBox.setModel(new DefaultComboBoxModel(new String[] {"In Progress", "Complete"}));
+        */
+        
+        JButton bIncomplete = new JButton("Incomplete");
+        bIncomplete.setBounds(154, 370, 100, 20);
+        errorViewPanel.add(bIncomplete);
+        
+        JButton bInProgress = new JButton("In Progress");
+        bInProgress.setBounds(264, 370, 100, 20);
+        errorViewPanel.add(bInProgress);
+        
+        JButton bCompleted = new JButton("Completed");
+        bCompleted.setBounds(374, 370, 100, 20);
+        errorViewPanel.add(bCompleted);
+        
+        JLabel lServerName = new JLabel("Server Name:");
+        lServerName.setForeground(Color.BLUE);
+        lServerName.setFont(new Font("Tahoma", Font.BOLD, 11));
+        lServerName.setBounds(29, 134, 79, 20);
+        errorViewPanel.add(lServerName);
+        
+    	tfServerName = new JTextField();
+    	tfServerName.setBounds(111, 134, 180, 20);
+    	errorViewPanel.add(tfServerName);
+    	tfServerName.setEditable(false);
+    	tfServerName.setBackground(Color.WHITE);
     	
-    	JLabel lRecommendedHeader = new JLabel("Recommended actions to take:");
-    	lRecommendedHeader.setBounds(58, 0 , 200, 20);
-    	pRecommended.add(lRecommendedHeader);
     	
-        tpRecommendedAction = new JTextPane();
-        tpRecommendedAction.setBounds(10, 20, 280, 260);
-        tpRecommendedAction.setEditable(false);
-        tpRecommendedAction.setBackground(Color.WHITE);
-    	pRecommended.add(tpRecommendedAction);
+    	cbServerLocationSelect = new JComboBox <String> ();
+    	cbServerLocationSelect.setBounds(18, 166, 150, 20);
+    	errorViewPanel.add(cbServerLocationSelect);
+    	cbServerLocationSelect.setModel(new DefaultComboBoxModel<String>(serverStrings));
+    	cbServerLocationSelect.setSelectedIndex(selectedServerBox);
+    	cbServerLocationSelect.addActionListener (new ActionListener () {
+    	    public void actionPerformed(ActionEvent e) {
+    	        selectedServerBox=cbServerLocationSelect.getSelectedIndex();
+    	    }
+    	});
     	
-        bTakeAction = new JButton();
-        bTakeAction.setBounds(20, 290 , 260, 20);
-        bTakeAction.setText("Take Recommended Action");
-        pRecommended.add(bTakeAction);
-    	bTakeAction.addActionListener(new ActionListener() {
+    	
+        bServer = new JButton();
+        bServer.setBounds(181, 166, 110, 20);
+        errorViewPanel.add(bServer);
+        bServer.setText("View");
+        
+        tfFileID = new JTextField();
+        tfFileID.setBounds(299, 57, 80, 20);
+        errorViewPanel.add(tfFileID);
+        tfFileID.setEditable(false);
+        tfFileID.setBackground(Color.WHITE);
+        JLabel lFileID = new JLabel("FILE ID:");
+        lFileID.setForeground(Color.BLACK);
+        lFileID.setFont(new Font("Tahoma", Font.BOLD, 11));
+        lFileID.setBounds(250, 55, 51, 20);
+        errorViewPanel.add(lFileID);
+        JLabel lFailTime = new JLabel("Error Date/Time:");
+        lFailTime.setForeground(Color.BLUE);
+        lFailTime.setFont(new Font("Tahoma", Font.BOLD, 11));
+        lFailTime.setBounds(9, 104, 109, 20);
+        errorViewPanel.add(lFailTime);
+        
+        
+		
+		tfFailTime = new JTextField();
+		tfFailTime.setBounds(111, 104, 180, 20);
+		errorViewPanel.add(tfFailTime);
+		tfFailTime.setEditable(false);
+		tfFailTime.setBackground(Color.WHITE);
+		JLabel lServiceName = new JLabel("Location:");
+		lServiceName.setForeground(Color.BLUE);
+		lServiceName.setFont(new Font("Tahoma", Font.BOLD, 11));
+		lServiceName.setBounds(341, 163, 61, 20);
+		errorViewPanel.add(lServiceName);
+		
+        
+		
+		tfServiceName = new JTextField();
+		tfServiceName.setBounds(402, 163, 180, 20);
+		errorViewPanel.add(tfServiceName);
+		tfServiceName.setEditable(false);
+		tfServiceName.setBackground(Color.WHITE);
+		
+		tfDeveloperName = new JTextField();
+		tfDeveloperName.setBounds(402, 134, 180, 20);
+		errorViewPanel.add(tfDeveloperName);
+		tfDeveloperName.setEditable(false);
+		tfDeveloperName.setBackground(Color.WHITE);
+		JLabel lDeveloperName = new JLabel("Developer:");
+		lDeveloperName.setForeground(Color.BLUE);
+		lDeveloperName.setFont(new Font("Tahoma", Font.BOLD, 11));
+		lDeveloperName.setBounds(333, 134, 100, 20);
+		errorViewPanel.add(lDeveloperName);
+		JLabel lExpectationSelect = new JLabel("Pick Expectation:");
+		lExpectationSelect.setForeground(new Color(0, 128, 0));
+		lExpectationSelect.setFont(new Font("Tahoma", Font.BOLD, 11));
+		lExpectationSelect.setBounds(9, 260, 99, 20);
+		errorViewPanel.add(lExpectationSelect);
+		
+		
+		cbExpectationSelect = new JComboBox <String> ();
+		cbExpectationSelect.setBounds(111, 260, 180, 20);
+		errorViewPanel.add(cbExpectationSelect);
+		
+		bViewExpectations = new JButton();
+		bViewExpectations.setBounds(111, 320, 180, 20);
+		errorViewPanel.add(bViewExpectations);
+		bViewExpectations.setText("Open Expectations Page");
+		
+        tfAnalystName = new JTextField();
+        tfAnalystName.setBounds(402, 104, 180, 20);
+        errorViewPanel.add(tfAnalystName);
+        tfAnalystName.setEditable(false);
+        tfAnalystName.setBackground(Color.WHITE);
+        JLabel lAnalystName = new JLabel("Analyst:");
+        lAnalystName.setForeground(Color.BLUE);
+        lAnalystName.setFont(new Font("Tahoma", Font.BOLD, 11));
+        lAnalystName.setBounds(347, 104, 100, 20);
+        errorViewPanel.add(lAnalystName);
+        
+    	tfExpectationID = new JTextField();
+    	tfExpectationID.setBounds(300, 225, 80, 20);
+    	errorViewPanel.add(tfExpectationID);
+    	tfExpectationID.setEditable(false);
+    	tfExpectationID.setBackground(Color.WHITE);
+    	JLabel lExpectationID = new JLabel("EXPECTATION ID:");
+    	lExpectationID.setForeground(Color.BLACK);
+    	lExpectationID.setFont(new Font("Tahoma", Font.BOLD, 11));
+    	lExpectationID.setBounds(202, 226, 100, 20);
+    	errorViewPanel.add(lExpectationID);
+    	JLabel lExpectStatus = new JLabel("Status:");
+    	lExpectStatus.setForeground(new Color(0, 128, 0));
+    	lExpectStatus.setFont(new Font("Tahoma", Font.BOLD, 11));
+    	lExpectStatus.setBounds(353, 260, 46, 20);
+    	errorViewPanel.add(lExpectStatus);
+    	
+    	tfExpectStatus = new JTextField();
+    	tfExpectStatus.setBounds(401, 260, 180, 20);
+    	errorViewPanel.add(tfExpectStatus);
+    	tfExpectStatus.setEditable(false);
+    	tfExpectStatus.setBackground(Color.WHITE);
+    	JLabel lEnvironment = new JLabel("Environment:");
+    	lEnvironment.setForeground(new Color(0, 128, 0));
+    	lEnvironment.setFont(new Font("Tahoma", Font.BOLD, 11));
+    	lEnvironment.setBounds(29, 288, 79, 20);
+    	errorViewPanel.add(lEnvironment);
+    	
+		tfEnvironment = new JTextField();
+		tfEnvironment.setBounds(111, 288, 180, 20);
+		errorViewPanel.add(tfEnvironment);
+		tfEnvironment.setEditable(false);
+		tfEnvironment.setBackground(Color.WHITE);
+		JLabel lEndTime = new JLabel("End Time:");
+		lEndTime.setForeground(new Color(0, 128, 0));
+		lEndTime.setFont(new Font("Tahoma", Font.BOLD, 11));
+		lEndTime.setBounds(338, 320, 60, 20);
+		errorViewPanel.add(lEndTime);
+		JLabel lStartTime = new JLabel("Start Time:");
+		lStartTime.setForeground(new Color(0, 128, 0));
+		lStartTime.setFont(new Font("Tahoma", Font.BOLD, 11));
+		lStartTime.setBounds(330, 288, 82, 20);
+		errorViewPanel.add(lStartTime);
+		
+		tfStartTime = new JTextField();
+		tfStartTime.setBounds(401, 288, 180, 20);
+		errorViewPanel.add(tfStartTime);
+		tfStartTime.setEditable(false);
+		tfStartTime.setBackground(Color.WHITE);
+		
+		tfEndTime = new JTextField();
+		tfEndTime.setBounds(401, 320, 180, 20);
+		errorViewPanel.add(tfEndTime);
+		tfEndTime.setEditable(false);
+		tfEndTime.setBackground(Color.WHITE);
+		
+		JPanel pResolution = new JPanel();
+		pResolution.setBounds(599, 400, 451, 241);
+		pResolution.setLayout(new BoxLayout(pResolution,BoxLayout.Y_AXIS));
+		pResolution.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+    	errorViewPanel.add(pResolution);
+    	
+    	JLabel lblResolution = new JLabel("Previously Submitted Resolution:");
+    	lblResolution.setAlignmentX(Component.CENTER_ALIGNMENT);
+		pResolution.add(lblResolution);
+		
+		textArea = new JTextArea();
+		textArea.setLineWrap(true);
+		textArea.setFont(new Font("Tahoma", Font.PLAIN, 11));
+		textArea.setBounds(10, 20, 431, 213);
+		
+		JScrollPane scroll2 = new JScrollPane (textArea, 
+ 			   JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+
+		pResolution.add(scroll2);
+		
+		
+		lblTriageDashboard = new JLabel("Triage Dashboard");
+		lblTriageDashboard.setFont(new Font("Franklin Gothic Medium", Font.BOLD, 18));
+		lblTriageDashboard.setBounds(202, 11, 167, 20);
+		errorViewPanel.add(lblTriageDashboard);
+		
+		JLabel lblViewPastDays = new JLabel("View Past Days:");
+		lblViewPastDays.setFont(new Font("Tahoma", Font.BOLD, 11));
+		lblViewPastDays.setBounds(18, 58, 98, 14);
+		errorViewPanel.add(lblViewPastDays);
+		
+		comboBox_1 = new JComboBox();
+		comboBox_1.setModel(new DefaultComboBoxModel(new String[] {"0", "1", "2", "3"}));
+		comboBox_1.setBounds(119, 55, 40, 20);
+		errorViewPanel.add(comboBox_1);
+		comboBox_1.setSelectedIndex(selectedViewPastDays);
+		comboBox_1.addActionListener (new ActionListener () {
+    	    public void actionPerformed(ActionEvent e) {
+    	    	selectedViewPastDays=comboBox_1.getSelectedIndex();
+    	    }
+    	});
+		
+		JButton btnGo = new JButton("Go!");
+		btnGo.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				
+				daysPast = comboBox_1.getSelectedItem().toString();
+				try {
+					createAndShowGUI2();
+				} catch (ClassNotFoundException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				} catch (InstantiationException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				} catch (IllegalAccessException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				} catch (UnsupportedLookAndFeelException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+			}
+		});
+		btnGo.setBounds(169, 54, 51, 23);
+		errorViewPanel.add(btnGo);
+		
+		JLabel lblV = new JLabel("v_1.1.0");
+		lblV.setBounds(359, 17, 46, 14);
+		errorViewPanel.add(lblV);
+		bViewExpectations.addActionListener(new ActionListener() {
 		  public void actionPerformed(ActionEvent evt) {			  
 			  new Thread(new Runnable() {
 			        public void run() {
-			        	//Run Info Gather
+			        	System.setProperty("webdriver.chrome.driver", "C://schema_creation/chromedriver.exe");
+			        	WebDriver dr = new ChromeDriver();
+			        	FIST Fdriver = new FIST(sFistUser,sFistPass,sOfficeLocation,false,dr);
+			        	Fdriver.loginConfig();
+			        	Fdriver.getExpectationsPage(getCurrentItem().getFileID(),getCurrentItem().getDate());
 			                
 			            }}).start();}});
+		
+		cbExpectationSelect.addActionListener(new ActionListener() {
+			  public void actionPerformed(ActionEvent evt) {			  
+				  getCurrentItem().setSelectedExpectNum(cbExpectationSelect.getSelectedIndex());
+				  selectExpectation();
+			  
+			  
+			  }});
+        bServer.addActionListener(new ActionListener() {
+		  public void actionPerformed(ActionEvent evt) {			  
+			  new Thread(new Runnable() {
+			        public void run() {
+			        	Server.user=sServerUser;
+			        	Server.pw=sServerPass;			        	
+			        	Server.serverLogin(getCurrentItem().getServer(),cbServerLocationSelect.getSelectedIndex());
+			        	
+			            }}).start();}});
         
-    	
+        bIncomplete.addMouseListener(new MouseAdapter() {
+        	@Override
+        	public void mouseClicked(MouseEvent e) {
+        		changeErrorStatus(0,getCurrentItem());
+        	}
+        });
+        
+        bInProgress.addMouseListener(new MouseAdapter() {
+        	@Override
+        	public void mouseClicked(MouseEvent e) {
+        		changeErrorStatus(1,getCurrentItem());
+        	}
+        });
+        
+        bCompleted.addMouseListener(new MouseAdapter() {
+        	@Override
+        	public void mouseClicked(MouseEvent e) {
+        		changeErrorStatus(2,getCurrentItem());
+        	}
+        });
+        
     }
     
     private void selectExpectation()
@@ -629,7 +919,22 @@ public class MainGUI extends JPanel
    
     
     private void populateErrorPanel () {
+    	if(errorList.size()==0){
+    		tfFileID.setText("");
+        	tfDeveloperName.setText("");
+        	tfDeveloperName.setCaretPosition(0);
+        	tfServiceName.setText("");
+        	tfServiceName.setCaretPosition(0);
+        	tfFailTime.setText("   |   ");
+        	tfServerName.setText("");
+        	textArea.setText("");
+        	String[] DateArray = new String[0];
+    	}
+    	
+    	
+    	if(errorList.size()>0){
     	tfFileID.setText(getCurrentItem().getFileID());
+    	textArea.setText(getCurrentItem().getResolution());
     	tfDeveloperName.setText(getCurrentItem().getDevName());
     	tfDeveloperName.setCaretPosition(0);
     	tfServiceName.setText(getCurrentItem().getServiceLocation());
@@ -639,14 +944,9 @@ public class MainGUI extends JPanel
     	String[] DateArray = new String[getCurrentItem().getExpectDateList().size()];
     	DateArray = getCurrentItem().getExpectDateList().toArray(DateArray);
     	cbExpectationSelect.setModel(new DefaultComboBoxModel<String>(DateArray));
-    	if(getCurrentItem().isGatheringInfo()==false)
-    	{
-    		bGatherInfo.setEnabled(true);
-    	}
-    	else
-    	{
-    		bGatherInfo.setEnabled(false);
-    	}
+    	
+    	tpReplyText.setText(getCurrentItem().getReplyText());
+    	
     	
     	if(getCurrentItem().getExpectNum()==0)
     	{
@@ -662,11 +962,11 @@ public class MainGUI extends JPanel
         	cbExpectationSelect.setSelectedIndex(getCurrentItem().getSelectedExpectNum());
     	}
     	selectExpectation();
-    	
-    	tpErrorText.setText(getCurrentItem().getErrorMessage()+"\n\n"+getCurrentItem().getStackTrace());
+    	textArea_1.setText(getCurrentItem().getErrorMessage()+"\n\n"+getCurrentItem().getStackTrace());
+    	//tpErrorText.setText(getCurrentItem().getErrorMessage()+"\n\n"+getCurrentItem().getStackTrace());
     	
     }
-    
+    }
 
     public JSplitPane getPane() {
         return splitPaneBottom;
@@ -697,7 +997,7 @@ public class MainGUI extends JPanel
         });
     	dCred.setTitle("Enter your credentials");
     	dCred.setBounds((screenSize.width/2)-120,(screenSize.height/2)-145,240, 290);
-    	dCred.setLayout(null);
+    	dCred.getContentPane().setLayout(null);
 
     	
     	int yShift=20;
@@ -727,14 +1027,14 @@ public class MainGUI extends JPanel
         cbOffice.setBounds(10, 10 + 9*yShift, 200, 20);
         String [] officeStrings = {"Winston Salem","Hunt Valley"};
         cbOffice.setModel(new DefaultComboBoxModel<String>(officeStrings));
-        if(sOfficeLocation.equals("Winston Salem"))
-        {
-        	cbOffice.setSelectedIndex(0);
-        }
-        else if (sOfficeLocation.equals("Hunt Valley"))
-        {
-        	cbOffice.setSelectedIndex(1);
-        }
+//        if(sOfficeLocation.equals("Winston Salem"))
+//        {
+//        	cbOffice.setSelectedIndex(0);
+//        }
+//        else if (sOfficeLocation.equals("Hunt Valley"))
+//        {
+//        	cbOffice.setSelectedIndex(1);
+//        }
         JButton bSave = new JButton("Save");
         bSave.setBounds(10, 20 + 10*yShift, 200, 20);
         bSave.addActionListener(new ActionListener() {
@@ -763,16 +1063,18 @@ public class MainGUI extends JPanel
 			    		PrintWriter writer = null;
 			    		
 			    			try {
-			    				
+			    					if (new File("C://Triage_Dashboard//").exists()==false){
+			    						new File("C://Triage_Dashboard//").mkdir();
+			    					}
 			    					writer = new PrintWriter("C://Triage_Dashboard//credentials.txt", "UTF-8");
 			    				
 			    			} catch (FileNotFoundException e1) {
 			    				// TODO Auto-generated catch block
 			    				e1.printStackTrace();
-			    			} catch (UnsupportedEncodingException e1) {
-			    				// TODO Auto-generated catch block
-			    				e1.printStackTrace();
-			    			}
+			    			} catch (UnsupportedEncodingException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
 			    			
 			    			//Use encrypt class to hide username and PW
 			    			sFistUser=FistUser;
@@ -797,18 +1099,18 @@ public class MainGUI extends JPanel
 			        	
 			            }}).start();}});
         
-        dCred.add(lFistUser);
-        dCred.add(tfFistUser);
-        dCred.add(lFistPass);
-        dCred.add(pfFistPass);
-        dCred.add(lServerUser);
-        dCred.add(tfServerUser);
-        dCred.add(lServerPass);
-        dCred.add(pfServerPass);
-        dCred.add(lOffice);
-        dCred.add(cbOffice);
+        dCred.getContentPane().add(lFistUser);
+        dCred.getContentPane().add(tfFistUser);
+        dCred.getContentPane().add(lFistPass);
+        dCred.getContentPane().add(pfFistPass);
+        dCred.getContentPane().add(lServerUser);
+        dCred.getContentPane().add(tfServerUser);
+        dCred.getContentPane().add(lServerPass);
+        dCred.getContentPane().add(pfServerPass);
+        dCred.getContentPane().add(lOffice);
+        dCred.getContentPane().add(cbOffice);
         
-        dCred.add(bSave);
+        dCred.getContentPane().add(bSave);
         
         
         dCred.setVisible(true);
@@ -846,19 +1148,38 @@ public class MainGUI extends JPanel
     	}
     }
 
-    private static void createAndShowGUI() {
+    private static void createAndShowGUI() throws ClassNotFoundException, InstantiationException, IllegalAccessException, UnsupportedLookAndFeelException {
 
         //Create and set up the window.
+    	previousIndex=0;
         frame = new JFrame("Triage Dashboard");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        MainGUI window = new MainGUI();
+        window = new MainGUI();
         frame.getContentPane().add(window.getPane());
-   //     frame.setMinimumSize(new Dimension(500, 300));
+        //frame.setMinimumSize(new Dimension(500, 300));
+
+        //Display the window.
+        
+        frame.pack();
+        frame.setVisible(true);
+        
+    }
+    
+    private static void createAndShowGUI2() throws ClassNotFoundException, InstantiationException, IllegalAccessException, UnsupportedLookAndFeelException {
+    	
+    	frame.getContentPane().removeAll();
+    	index = list.getSelectedValue().getErid();
+    	frameSize = window.getPane().getSize();
+    	String ReplyText = tpReplyText.getText();
+    //	int expectIndex = cbExpectationSelect.getSelectedIndex();
+    	window = new MainGUI();
+        frame.getContentPane().add(window.getPane());
 
         //Display the window.
         frame.pack();
         frame.setVisible(true);
-        
+      //  cbExpectationSelect.setSelectedIndex(expectIndex);
+        tpReplyText.setText(ReplyText);
     }
 
     public static void main(String[] args) {
@@ -866,7 +1187,23 @@ public class MainGUI extends JPanel
         //creating and showing this application's GUI.
         javax.swing.SwingUtilities.invokeLater(new Runnable() {
             public void run() {
-                createAndShowGUI();
+                try {
+                	daysPast = "0";
+					createAndShowGUI();
+					
+				} catch (ClassNotFoundException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (InstantiationException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IllegalAccessException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (UnsupportedLookAndFeelException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
                 
             }
         });
@@ -874,11 +1211,17 @@ public class MainGUI extends JPanel
     
 
     public class ListItemRenderer extends JLabel implements ListCellRenderer<ListItem> {
-        @Override
+        /**
+		 * 
+		 */
         public Component getListCellRendererComponent(JList<? extends ListItem> list, ListItem item, int index, boolean isSelected, boolean cellHasFocus) {
         	setOpaque(true);
-        	
+        	if(item.getFileID().equals("?")){
+        		setText("    "+item.getFileID() + "     | " +item.getTime() + " | " + item.getDate());
+        	}
+        	else{
             setText(item.getFileID() + " | " +item.getTime() + " | " + item.getDate());
+        	}
             if(item.getStatus().equals("2"))
             {
             	setBackground(Color.GREEN);
@@ -889,9 +1232,8 @@ public class MainGUI extends JPanel
             }
             if(item.getStatus().equals("0"))
             {
-            	setBackground(Color.RED);
+            	setBackground(Color.WHITE);
             }
-            
             if (isSelected) {
                 setBorder(BorderFactory.createLineBorder(Color.BLACK,2));
             }
@@ -903,7 +1245,13 @@ public class MainGUI extends JPanel
             return this;
         }
    }
-    
+    public String getDateSelect() {
+		return dateSelect;
+	}
+
+	public static void setDateSelect(String dateSelect1) {
+		dateSelect = dateSelect1;
+	}
    public void clearExpectations()
    {
 	    getCurrentItem().getEnvironmentList().clear();
@@ -914,5 +1262,107 @@ public class MainGUI extends JPanel
 	   	getCurrentItem().getEndTimeList().clear();
 	   	getCurrentItem().getAnalystNameList().clear();
    }
-          
+   
+   public void submitResolution(String resolution)
+   {
+	   Connection connection = null;
+       ResultSet resultSet = null;
+       Statement statement = null;
+		try {
+           Class.forName("org.firebirdsql.jdbc.FBDriver");
+           connection = DriverManager
+                   .getConnection(
+                           "jdbc:firebirdsql://NUSDD2F0J6M1:3050/C:/database/BASE.fdb",
+                           "sysdba", "masterkey");
+           statement = connection.createStatement();
+           statement.executeUpdate("UPDATE TRIAGE set RESOLUTION = '"+resolution+"'where ERRORID = "+getCurrentItem().getErid()+"");
+           
+		} catch (Exception e1) {
+           e1.printStackTrace();
+       }
+		try {
+			createAndShowGUI2();
+		} catch (ClassNotFoundException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (InstantiationException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (IllegalAccessException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (UnsupportedLookAndFeelException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		
+		
+	}
+   }
+   
+   public void changeErrorStatus(int Status, ListItem item)
+   {
+	   System.out.println(getCurrentItems().size());
+	   Connection connection = null;
+       ResultSet resultSet = null;
+       Statement statement = null;
+       ArrayList<ListItem> items = getCurrentItems();
+       for(int i=0;i<items.size();i++){
+		try {
+           Class.forName("org.firebirdsql.jdbc.FBDriver");
+           connection = DriverManager
+                   .getConnection(
+                           "jdbc:firebirdsql://NUSDD2F0J6M1:3050/C:/database/BASE.fdb",
+                           "sysdba", "masterkey");
+           statement = connection.createStatement();
+           statement.executeUpdate("UPDATE TRIAGE set STATUS = '"+Status+"'where ERRORID = "+items.get(i).getErid()+"");
+           
+		} catch (Exception e1) {
+           e1.printStackTrace();
+       }
+		try {
+			createAndShowGUI2();
+		} catch (ClassNotFoundException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (InstantiationException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (IllegalAccessException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (UnsupportedLookAndFeelException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		
+		
+	}
+       }
+   }
+   
+   public static  void updater(){
+	   ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor();
+		exec.scheduleAtFixedRate(new Runnable() {
+			//This method runs once every second, it is used to set the progress bars, automate FIST deployment, and automate Maestro automation
+		  @Override
+		  public void run() {
+			  //window.list.removeAll();
+			  System.out.println("15");
+			  try {
+				createAndShowGUI2();
+			} catch (ClassNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (InstantiationException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IllegalAccessException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (UnsupportedLookAndFeelException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		  }
+		}, 0, 15, TimeUnit.SECONDS);
+   }
 }
