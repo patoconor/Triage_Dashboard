@@ -52,69 +52,51 @@ public class ErrorLine {
 	private ArrayList <String> startTimeList;
 	private ArrayList <String> endTimeList;
 	public static void main (String[] args){
-//		int run = 0;
-//		System.setProperty("webdriver.chrome.driver", "C://schema_creation/chromedriver.exe");
-//		WebDriver dr = new ChromeDriver();
-//		while(run == 0){
-//		Server server = new Server();
-//		ArrayList<ListItem> listItems = server.CreateErrorLogs(dr);
-//		ArrayList<ListItem> listItems2 = insertMessageQ(listItems);
-//		System.out.println(listItems.size());
-//		ErrorLine erline = new ErrorLine();
-//		erline.createErrorLine("poconorhra","Spektor33!",listItems2,dr);
-//		}
-		ArrayList<ListItem> newlist = new ArrayList<ListItem>();
-		insertMessageQ(newlist);
+		int run = 0;
+		System.setProperty("webdriver.chrome.driver", "C://schema_creation/chromedriver.exe");
+		WebDriver dr = new ChromeDriver();
+		while(run == 0){
+			Connection connection = null;
+	        ResultSet resultSet2 = null;
+	        Statement statement = null;
+			Server server = new Server();
+			ArrayList<ListItem> listItems = server.CreateErrorLogs(dr);
+			ArrayList<ListItem> listItems2 = insertMessageQ(listItems);
+			System.out.println(listItems.size());
+			ErrorLine erline = new ErrorLine();
+			erline.createErrorLine("poconorhra","Spektor33!",listItems2,dr);
+		}
 		
 	}
+	
+//	public static ArrayList<ListItem> insertLongRun(ArrayList<ListItem> listitems2){
+//		Connection connection = null;
+//        ResultSet resultSet = null;
+//        Statement statement = null;
+//        
+//        
+//		try {
+//            String connectionURL = "jdbc:jtds:sqlserver://L4DWIPDS011.hewitt.com:13163/;" + "databaseName=FileConfig;user=poconor;password=Spektor27!;";
+//            connection = DriverManager
+//                    .getConnection(connectionURL);
+//            statement = connection.createStatement();
+//            resultSet = statement.executeQuery("SELECT 	jm.jobId, jm.fileId, jm.queuedAt, jm.wmServer,  	jm.Env, jm.jobStatus, jm.priority, jm.ServiceManagerInstance,  	jm.expect_id, jm.expect_iteration,  	ex.ServiceManagerStartTime, dca.dca_average_conversion_minutes,  	DATEADD(n,dca.dca_average_conversion_minutes,ex.ServiceManagerStartTime) AS expected_end_time  FROM 	jobManager jm  LEFT OUTER JOIN	expectations ex ON ex.expect_id = jm.expect_id  LEFT OUTER JOIN dbo.document_averages dca ON dca.dca_fileid = jm.FileID WHERE 	jm.wmServer IS NOT NULL  AND 	jm.jobStatus in ('Q','A','R')  AND		ex.ServiceManagerStartTime IS NOT NULL  AND	dca.dca_average_conversion_minutes IS NOT NULL  and (DATEDIFF(n,ex.ServiceManagerStartTime,GETDATE()) > (dca.dca_average_conversion_minutes + 10)) ORDER BY jm.wmServer, jm.queuedAt");
+//            while(resultSet.next()){
+//            	listitems2.add(new ListItem())
+//            }
+//		}
+//	}
+	
+	
+	
 	public static ArrayList<ListItem> insertMessageQ(ArrayList<ListItem> listitems2){
 		
 		Connection connection = null;
         ResultSet resultSet = null;
         Statement statement = null;
-        Connection connection2 = null;
-        ResultSet resultSet2 = null;
-        Statement statement2 = null;
-        ArrayList<String> results = new ArrayList<String>();
-        
-        
-        
-//        try {
-//            connection2 = DriverManager
-//                    .getConnection(
-//                            "jdbc:firebirdsql://localhost:3050/C:/database/BASE.fdb",
-//                            "sysdba", "masterkey");
-//            statement2 = connection2.createStatement();
-//            resultSet2 = statement2.executeQuery("select DISTINCT * from TRIAGE");
-//            while(resultSet2.next()){
-//          	  Boolean insert = true;
-//        		String text2 = resultSet2.getString("SERVER")+"|"+resultSet2.getString("FILEID")+"|"+resultSet2.getString("ERROR")+"|"+resultSet2.getString("ERDATE")+"|"+resultSet2.getString("ERTIME");
-//        		text2 = text2.replaceAll("\n", "");
-//        		text2 = text2.trim();
-//        		results.add(text2);
-//        		
-//        	}
-//  		} catch (Exception e) {
-//              e.printStackTrace();
-//          } finally {
-//              try {
-//                  statement2.close();
-//                  connection2.close();
-//              } catch (Exception e) {
-//                  e.printStackTrace();
-//              }
-//          }
-        
-        
-        
         
         
 		try {
-//			connection2 = DriverManager
-//                    .getConnection(
-//                            "jdbc:firebirdsql://localhost:3050/C:/database/BASE.fdb",
-//                            "sysdba", "masterkey");
-//            statement2 = connection2.createStatement();
             String connectionURL = "jdbc:jtds:sqlserver://L4DWIPDS011.hewitt.com:13163/;" + "databaseName=FileConfig;user=poconor;password=Spektor27!;";
             connection = DriverManager
                     .getConnection(connectionURL);
@@ -125,40 +107,27 @@ public class ErrorLine {
      
             while(resultSet.next()){
             	Boolean insert = true;
-            	String server = "";
+            	String server123 = "";
             	if(resultSet.getString("msg_addldetails").contains("L4DWIPAP")){
-            		server = resultSet.getString("msg_addldetails").replaceAll("\n", "").substring(resultSet.getString("msg_addldetails").indexOf("L4DWIPAP")-1,resultSet.getString("msg_addldetails").replaceAll("\n", "").indexOf("L4DWIPAP")+11).replaceAll("\n", "");
-            		server = server.replaceAll("\n", "");
+            		server123 = resultSet.getString("msg_addldetails").replaceAll("\n", "").substring(resultSet.getString("msg_addldetails").indexOf("L4DWIPAP")-2,resultSet.getString("msg_addldetails").replaceAll("\n", "").indexOf("L4DWIPAP")+11).replaceAll("\n", "");
+            		server123 = server123.replaceAll("\n", "");
+            		server123 = server123.replaceAll(" ", "");
             	}
-            	
+            	System.out.println(server123);
             	String error = resultSet.getString("msg_addldetails").replaceAll("\r\n", "");
             	error = error.replaceAll("\n", "");
             	error = error.replace(System.getProperty("line.separator"), "");
-            	listitems2.add(new ListItem(resultSet.getString("msg_fileid"), resultSet.getString("msg_inserted_dttime"), server, "",error, ""));
+            	listitems2.add(new ListItem(resultSet.getString("msg_fileid"), resultSet.getString("msg_inserted_dttime"), server123, "",error, ""));
             	System.out.println(error);
-            	String text = server.replaceAll("\n", "")+"|"+resultSet.getString("msg_fileid")+"|"+error+"|"+resultSet.getString("msg_inserted_dttime").split(" ")[0].replaceAll("/", "-")+"|"+resultSet.getString("msg_inserted_dttime").split(" ")[1].split(":")[0]+":"+resultSet.getString("msg_inserted_dttime").split(" ")[1].split(":")[1];
-            	text = text.replaceAll("\n", "");
-            	text = text.trim();
-//            	for(int i=0;i<results.size();i++){
-////            		System.out.println("TEXT: "+text);
-////            		System.out.println("RESULTS: "+results.get(i).toString());
-//        			if(results.get(i).toString().equals(text)){
-//        				insert = false;
-//        			}
-//        		}
-//        		if(insert==true){
-//        	      	statement2.executeUpdate("INSERT INTO TRIAGE (FILEID, ERDATE, ERTIME, SERVER,ERROR) VALUES ('"+resultSet.getString("msg_fileid")+"', '"+resultSet.getString("msg_inserted_dttime").split(" ")[0].replaceAll("/", "-")+"', '"+resultSet.getString("msg_inserted_dttime").split(" ")[1].split(":")[0]+":"+resultSet.getString("msg_inserted_dttime").split(" ")[1].split(":")[1]+"', '"+server+"', '"+resultSet.getString("msg_addldetails").replaceAll("(\\r|\\n|\r\n)", "")+"')");	
-//        	    }
+            	
 
             }
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
             try {
-//            	statement2.close();
                 statement.close();
                 connection.close();
-//                connection2.close();
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -170,6 +139,9 @@ public class ErrorLine {
 	
 	public void createErrorLine(String fistUsername, String fistPassword, ArrayList<ListItem> list, WebDriver dr)
 	{
+		Connection connection = null;
+        ResultSet resultSet2 = null;
+        Statement statement = null;
 		for(int i=0;i<list.size();i++){
 			File del = new File("C://Triage_Dashboard//ActiveErrors.txt");
 			fistUser=fistUsername;
@@ -201,9 +173,6 @@ public class ErrorLine {
 			if (fileID.equals("?")==false){
 			populateFieldsInFIST(dr);
 			createFullLine();
-			Connection connection = null;
-	        ResultSet resultSet = null;
-	        Statement statement = null;
 			try {
 	            Class.forName("org.firebirdsql.jdbc.FBDriver");
 	            connection = DriverManager
@@ -211,39 +180,43 @@ public class ErrorLine {
 	                            "jdbc:firebirdsql://localhost:3050/C:/database/BASE.fdb",
 	                            "sysdba", "masterkey");
 	            statement = connection.createStatement();
-	            resultSet = statement.executeQuery("select DISTINCT * from TRIAGE");
+	            resultSet2 = statement.executeQuery("select DISTINCT * from TRIAGE");
 	            //statement.executeUpdate("INSERT INTO TRIAGE (FILEID, STATUS, ERDATE, ERTIME, SERVER, LOCATION, DEVELOPER, FIST) VALUES ('"+fileID+"', '"+status+"', '"+date+"', '"+time+"', '"+server+"', '"+serviceLocation+"', '"+devName+"', '"+FullLine+"')");
+	            Boolean partial = false;
 	            Boolean insert = true;
-	            while(resultSet.next()){
-	            	String text = resultSet.getString("FILEID")+"|"+resultSet.getString("STATUS")+"|"+resultSet.getString("ERDATE")+"|"+resultSet.getString("ERTIME")+"|"+resultSet.getString("SERVER")+"|"+resultSet.getString("LOCATION")+"|"+resultSet.getString("DEVELOPER")+"|"+resultSet.getString("ERROR")+"|"+resultSet.getString("STACK")+"|"+resultSet.getString("FIST");
-	            	String textMinus = resultSet.getString("FILEID")+"|"+resultSet.getString("ERDATE")+"|"+resultSet.getString("ERTIME")+"|"+resultSet.getString("SERVER")+"|"+resultSet.getString("LOCATION")+"|"+resultSet.getString("DEVELOPER")+"|"+resultSet.getString("ERROR")+"|"+resultSet.getString("STACK")+"|"+resultSet.getString("FIST");
+	            int errorID = 0;
+	            while(resultSet2.next()){
+	            	String text = resultSet2.getString("FILEID")+"|"+resultSet2.getString("STATUS")+"|"+resultSet2.getString("ERDATE")+"|"+resultSet2.getString("ERTIME")+"|"+resultSet2.getString("SERVER")+"|"+resultSet2.getString("LOCATION")+"|"+resultSet2.getString("DEVELOPER")+"|"+resultSet2.getString("ERROR")+"|"+resultSet2.getString("STACK")+"|"+resultSet2.getString("FIST");
+	            	String textMinus = resultSet2.getString("FILEID").trim()+"|"+resultSet2.getString("ERDATE").trim()+"|"+resultSet2.getString("ERTIME").trim()+"|"+resultSet2.getString("SERVER").trim()+resultSet2.getString("FIST").trim();
 	            	
 	            	//System.out.println(text);
-	            	String text1 = fileID+"|"+date+"|"+time+"|"+server+"|"+serviceLocation+"|"+devName+"|"+errorMessage+"|"+stackTrace+"|"+FullLine;
+	            	String text1 = fileID.trim()+"|"+date.trim()+"|"+time.trim()+"|"+server.trim()+"|"+FullLine.trim();
+	            	
 	            	if(textMinus.equals(text1)){
 	            		insert = false;
 	            	}
+	            	if(fileID.trim().equals(resultSet2.getString("FILEID").trim()) && date.trim().equals(resultSet2.getString("ERDATE").trim()) && time.trim().equals(resultSet2.getString("ERTIME").trim()) && server.trim().equals(resultSet2.getString("SERVER").trim())){
+	            		partial = true;
+	            		errorID = resultSet2.getInt("ERRORID");
+	            	}
 	            }
-	            if(insert == true){
+	            Statement statement2 = connection.createStatement();
+	            if(insert == true && partial == false){
 	            	System.out.println(fileID+"|"+date+"|"+time+"|"+server+"|"+serviceLocation+"|"+devName+"|"+errorMessage+"|"+stackTrace+"|"+FullLine);
-	            	statement.executeUpdate("INSERT INTO TRIAGE (FILEID, STATUS, ERDATE, ERTIME, SERVER, LOCATION, DEVELOPER, STACK, ERROR, FIST) VALUES ('"+fileID+"', '"+status+"', '"+date+"', '"+time+"', '"+server+"', '"+serviceLocation+"', '"+devName+"', '"+stackTrace+"', '"+errorMessage+"', '"+FullLine+"');");	
+	            	statement2.executeUpdate("INSERT INTO TRIAGE (FILEID, STATUS, ERDATE, ERTIME, SERVER, LOCATION, DEVELOPER, STACK, ERROR, FIST) VALUES ('"+fileID+"', '"+status+"', '"+date+"', '"+time+"', '"+server+"', '"+serviceLocation+"', '"+devName+"', '"+stackTrace+"', '"+errorMessage+"', '"+FullLine+"');");	
 	            }
+	            if(insert == true && partial == true){
+	            	statement2.executeUpdate("UPDATE TRIAGE set FIST = '"+FullLine+"'where ERRORID = "+errorID+"");
+	            }
+	            	statement2.close();
+	            	
 	            
 	        } catch (Exception e) {
 	            e.printStackTrace();
 	        } finally {
-	            try {
-	                statement.close();
-	                connection.close();
-	            } catch (Exception e) {
-	                e.printStackTrace();
-	            }
 	        }
 			}
 			if (fileID.equals("?")){
-				Connection connection = null;
-		        ResultSet resultSet = null;
-		        Statement statement = null;
 		        setFullLine("");
 				try {
 		            Class.forName("org.firebirdsql.jdbc.FBDriver");
@@ -253,12 +226,12 @@ public class ErrorLine {
 		                            "sysdba", "masterkey");
 		            statement = connection.createStatement();
 		            
-		            resultSet = statement.executeQuery("select DISTINCT * from TRIAGE");
+		            resultSet2 = statement.executeQuery("select DISTINCT * from TRIAGE");
 		            //statement.executeUpdate("INSERT INTO TRIAGE (FILEID, STATUS, ERDATE, ERTIME, SERVER, LOCATION, DEVELOPER, FIST) VALUES ('"+fileID+"', '"+status+"', '"+date+"', '"+time+"', '"+server+"', '"+serviceLocation+"', '"+devName+"', '"+FullLine+"')");
 		            Boolean insert = true;
-		            while(resultSet.next()){
-		            	String text = resultSet.getString("FILEID")+"|"+resultSet.getString("STATUS")+"|"+resultSet.getString("ERDATE")+"|"+resultSet.getString("ERTIME")+"|"+resultSet.getString("SERVER")+"|"+resultSet.getString("LOCATION")+"|"+resultSet.getString("DEVELOPER")+"|"+resultSet.getString("ERROR")+"|"+resultSet.getString("STACK")+"|"+resultSet.getString("FIST");
-		            	String textMinus = resultSet.getString("FILEID")+"|"+resultSet.getString("ERDATE")+"|"+resultSet.getString("ERTIME")+"|"+resultSet.getString("SERVER")+"|"+resultSet.getString("LOCATION")+"|"+resultSet.getString("DEVELOPER")+"|"+resultSet.getString("ERROR")+"|"+resultSet.getString("STACK")+"|"+resultSet.getString("FIST");
+		            while(resultSet2.next()){
+		            	String text = resultSet2.getString("FILEID")+"|"+resultSet2.getString("STATUS")+"|"+resultSet2.getString("ERDATE")+"|"+resultSet2.getString("ERTIME")+"|"+resultSet2.getString("SERVER")+"|"+resultSet2.getString("LOCATION")+"|"+resultSet2.getString("DEVELOPER")+"|"+resultSet2.getString("ERROR")+"|"+resultSet2.getString("STACK")+"|"+resultSet2.getString("FIST");
+		            	String textMinus = resultSet2.getString("FILEID")+"|"+resultSet2.getString("ERDATE")+"|"+resultSet2.getString("ERTIME")+"|"+resultSet2.getString("SERVER")+"|"+resultSet2.getString("LOCATION")+"|"+resultSet2.getString("DEVELOPER")+"|"+resultSet2.getString("ERROR")+"|"+resultSet2.getString("STACK")+"|"+resultSet2.getString("FIST");
 		            	
 		            	System.out.println(text);
 		            	String text1 = fileID+"|"+date+"|"+time+"|"+server+"|"+serviceLocation+"|"+devName+"|"+errorMessage+"|"+stackTrace+"|"+FullLine;
@@ -273,17 +246,16 @@ public class ErrorLine {
 		        } catch (Exception e) {
 		            e.printStackTrace();
 		        } finally {
-		            try {
-		                statement.close();
-		                connection.close();
-		            } catch (Exception e) {
-		                e.printStackTrace();
-		            }
 		        }
 			}
 			
 		}
-		
+		try {
+            statement.close();
+            connection.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 	}
 
 	private void writeFullLine()

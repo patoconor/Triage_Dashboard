@@ -144,7 +144,7 @@ public class Server {
 		        String stack = data.get(i)[2];
 		        String error = data.get(i)[3];
 		        String nums = "0123456789";
-		        String server = "l4dwipap05"+m;
+		        String server = "L4DWIPAP05"+m;
 		        String fileID = "?";
 		        if(service.contains(":HA")&& numCheck(service.charAt(service.indexOf(":HA")+3))==true){
         			fileID = service.substring(service.indexOf(":HA")+3,service.indexOf(":HA")+8);
@@ -193,7 +193,7 @@ public class Server {
 	            String service = "" ;
 	            String stack = "" ;
 	            String error = "";
-	            String server1 = "l4dwipap05"+m;
+	            String server1 = "L4DWIPAP05"+m;
 	            String nums = "0123456789";
 	        	for(int l=0;l<data.size();l++){
 	        		if(data.get(l)[0].equals(uV[k])){
