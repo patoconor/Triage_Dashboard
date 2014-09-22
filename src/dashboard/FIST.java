@@ -292,7 +292,7 @@ public class FIST  {
 		        	
 		        	
 		        	we = driver.findElement(By.name("replyButton"));
-		        	//we.click();
+		        	we.click();
 		        	
 		        	bReplied=true;
 		        	

@@ -87,6 +87,8 @@ public class MainGUI extends JPanel
     
     private JButton bLookingIntoIt;
     private JButton bReplyInFist;
+    private String sSavedReply;
+    private JComboBox<String> cbReplies;
     private static JTextPane tpReplyText;
     private static int previousIndex;
     private JButton bTakeAction;
@@ -533,11 +535,42 @@ public class MainGUI extends JPanel
 			            }}).start();}});
         
         JLabel lRecommendedHeader = new JLabel("Send this reply to fist for current expectation:");
-    	lRecommendedHeader.setBounds(113, 60 , 300, 20);
+    	lRecommendedHeader.setBounds(113, 50 , 300, 20);
     	pActions.add(lRecommendedHeader);
     	
+    	
+    	String[] replies = new String[] {"Add pre-filled response (not required):","File has run successfully since error. No further triage will be performed.","Invalid characters in input file, line XXX.  Please correct and re-run.","Input file was found to be empty.","Coding has an invalid schema reference.  Return the Maestro to the developer for a small correction.","XML was found to be truncated.  Please re-drop.  If problem persists, ask a CTC to drop the file.","Date conversion error.  Return the Maestro to the developer for analysis and correction.","Math or string content error.  Return the Maestro to the developer for analysis and correction."};
+    	cbReplies = new JComboBox<String>() ;
+    	cbReplies.setModel(new DefaultComboBoxModel<String>(replies));
+    	cbReplies.setBounds(10, 70 , 430, 20);
+    	pActions.add(cbReplies);
+    	cbReplies.setSelectedIndex(0);
+    	cbReplies.setFocusable(false);
+    	cbReplies.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				if(cbReplies.getSelectedIndex()==0)
+    	    	{
+					sSavedReply=tpReplyText.getText();
+    	    	}
+			}
+    	});
+    	
+		cbReplies.addActionListener (new ActionListener () {
+    	    public void actionPerformed(ActionEvent e) {
+    	    	if(cbReplies.getSelectedIndex()!=0)
+    	    	{
+    	    		tpReplyText.setText(cbReplies.getSelectedItem().toString());
+    	    	}
+    	    	else
+    	    	{
+    	    		tpReplyText.setText(sSavedReply);
+    	    	}
+    	    }
+    	});
+    	
         tpReplyText = new JTextPane();
-        tpReplyText.setBounds(10, 85,430, 280);
+        tpReplyText.setBounds(10, 95,430, 270);
         tpReplyText.setBackground(Color.WHITE);
         pActions.add(tpReplyText);
         
@@ -953,6 +986,7 @@ public class MainGUI extends JPanel
     		cbExpectationSelect.setEnabled(false);
     		bLookingIntoIt.setEnabled(false);
     		bReplyInFist.setEnabled(false);
+    		cbReplies.setEnabled(false);
     	}
     	else
     	{
@@ -960,6 +994,7 @@ public class MainGUI extends JPanel
     		bLookingIntoIt.setEnabled(true);
     		bReplyInFist.setEnabled(true);
         	cbExpectationSelect.setSelectedIndex(getCurrentItem().getSelectedExpectNum());
+        	cbReplies.setEnabled(true);
     	}
     	selectExpectation();
     	textArea_1.setText(getCurrentItem().getErrorMessage()+"\n\n"+getCurrentItem().getStackTrace());
