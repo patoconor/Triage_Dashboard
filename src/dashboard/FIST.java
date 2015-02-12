@@ -9,6 +9,7 @@ import javax.swing.JOptionPane;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.Point;
+import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.remote.DesiredCapabilities;
@@ -17,6 +18,7 @@ import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.ie.InternetExplorerDriver;
 
 import com.thoughtworks.selenium.Selenium;
 
@@ -27,7 +29,15 @@ public class FIST  {
 	private WebElement we;
 	private String URLstart;
 	Dimension screenSize;
-	
+	public static void main(String[] args) throws InterruptedException{
+		System.setProperty("webdriver.ie.driver","C://schema_creation//IEDriverServer.exe");
+	     WebDriver driver1 = new InternetExplorerDriver();
+		FIST fist = new FIST("poconorhra", "Spektor33!", "Hunt Valley", false, driver1);
+		fist.loginConfig();
+		//System.out.println(fist.getDevName("62817"));
+		//System.out.println(fist.getDevName("65555"));
+		System.out.println(fist.getLocation("63805"));
+	}
 	FIST (String username, String password, String officeLocation, boolean isHidden, WebDriver dr)
 	{
 		screenSize = Toolkit.getDefaultToolkit().getScreenSize();
@@ -42,7 +52,6 @@ public class FIST  {
 			URLstart="https://cbagray.hewitt.com/";
 		}
 		
-		System.setProperty("webdriver.chrome.driver", "C://schema_creation/chromedriver.exe");
 		driver = dr;
 //        if (isHidden ==true)
 //        {
@@ -77,36 +86,39 @@ public class FIST  {
 		driver.close();
 	}
 	
-	public void loginProd(){
+	public void loginProd() throws InterruptedException{
 		driver.get("https://cbap.hewitt.com/safe/");
         we = driver.findElement(By.name("username"));
         we.sendKeys(user);
         we = driver.findElement(By.name("password"));
         we.sendKeys(pass);
         we.submit();
+        Thread.sleep(5000);
    
 	}
 	
-	public void loginConfig(){
+	public void loginConfig() throws InterruptedException{
 		driver.get(URLstart+ "safe/");
 		we = driver.findElement(By.name("username"));
         we.sendKeys(user);
         we = driver.findElement(By.name("password"));
         we.sendKeys(pass);
         we.submit();
+        Thread.sleep(5000);
    
 	}
 	public String getDevName(String fileID)
 	{
 		driver.get("https://cbap.hewitt.com/fist/wicket/bookmarkable/com.aonhewitt.fist.page.FindDeployments?2");
-        we = driver.findElement(By.cssSelector("input[name='fileIDs'"));
+        we = driver.findElement(By.name("fileIDs"));
         we.sendKeys(fileID);
         
-        we = driver.findElement(By.cssSelector("input[name='find'"));
+        we = driver.findElement(By.name("find"));
         we.click();
         
         String sReturn= "No Developer Found";
-        if(driver.findElements(By.name("developerName")).size() != 0)
+        int count = driver.findElements(By.name("developerName")).size();
+        if(count > 0)
         {
         	we = new Select(driver.findElement(By.name("developerName"))).getFirstSelectedOption();
         	sReturn = we.getText();
@@ -115,7 +127,7 @@ public class FIST  {
         if(driver.findElements(By.className("feedbackPanelERROR")).size()>0){
         	sReturn = "No Developer Found";
         }
-        else
+        else if(count == 0)
         {
         	we = driver.findElement((By.className("rowOdd")));
             List<WebElement> rows = we.findElements(By.tagName("td"));
@@ -126,11 +138,11 @@ public class FIST  {
 	}
 	public String getLocation(String fileID)
 	{
-		driver.get("https://cbap.hewitt.com/fist/wicket/bookmarkable/com.aonhewitt.fist.page.ListWebMethodsServices?5");
-        we = driver.findElement(By.cssSelector("input[name='fileIDs'"));
+		driver.get(URLstart+"fist/wicket/bookmarkable/com.aonhewitt.fist.page.ListWebMethodsServices");
+        we = driver.findElement(By.name("fileIDs"));
         we.sendKeys(fileID);
         
-        we = driver.findElement(By.cssSelector("input[name='find'"));
+        we = driver.findElement(By.name("find"));
         we.click();
         
         String sReturn;
@@ -153,12 +165,12 @@ public class FIST  {
 	{
 		driver.get(URLstart+"fist/wicket/bookmarkable/com.aonhewitt.fist.page.SearchExpectations?1");
 		
-		we = driver.findElement(By.cssSelector("input[name='beginDate'"));
+		we = driver.findElement(By.name("beginDate"));
 		we.clear();
         we.sendKeys(expectDate);
-		we = driver.findElement(By.cssSelector("input[name='fileIDs'"));
+		we = driver.findElement(By.name("fileIDs"));
         we.sendKeys(fileID);
-        we = driver.findElement(By.cssSelector("input[name='search'"));
+        we = driver.findElement(By.name("search"));
         we.click();
 	}
 	
@@ -257,9 +269,13 @@ public class FIST  {
 				we.click();
 				
 				WebDriverWait wait = new WebDriverWait(driver, 10);
-
+				try{
 				wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//html/body/table[2]/tbody/tr/td/table/tbody/tr/td[3]/table/tbody/tr/td/div/div/table/tbody/tr[3]/td/form/table[3]/tbody/tr/td/table/tbody/tr[2]/td[4]/span")));
-				
+				}catch(TimeoutException toe){
+					 
+					return "";
+			 
+				}
 				we=driver.findElement(By.xpath("//html/body/table[2]/tbody/tr/td/table/tbody/tr/td[3]/table/tbody/tr/td/div/div/table/tbody/tr[3]/td/form/table[3]/tbody/tr/td/table/tbody/tr[2]/td[4]/span"));
 				String sName = we.getText();
 				driver.navigate().back();
@@ -282,6 +298,7 @@ public class FIST  {
 				
 				WebDriverWait wait = new WebDriverWait(driver, 10);
 				wait.until(ExpectedConditions.visibilityOfElementLocated(By.partialLinkText(fileID)));
+				
 				
 		        	we = driver.findElement(By.partialLinkText(fileID));
 		        	we.click();

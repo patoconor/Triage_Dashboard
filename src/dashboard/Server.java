@@ -14,6 +14,8 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.ie.InternetExplorerDriver;
 
 import dashboard.ListItem;
 
@@ -21,10 +23,20 @@ public class Server {
 	static String user;
 	static String pw;
 	
+	public static boolean findElementByXpath(String object){
+	    try {
+	    	System.setProperty("webdriver.ie.driver","C://schema_creation//IEDriverServer.exe");
+		     WebDriver driver = new InternetExplorerDriver();
+		      driver.findElement(By.xpath(object));
+		      return true;
+		    } catch (Exception e) {
+		      return false;
+		    }
+	}
 	static public void serverLogin(String serverName,int serverSelect)
 	{
-		System.setProperty("webdriver.chrome.driver", "C://schema_creation/chromedriver.exe");
-        WebDriver driver = new ChromeDriver();
+		System.setProperty("webdriver.ie.driver","C://schema_creation//IEDriverServer.exe");
+	     WebDriver driver = new InternetExplorerDriver();
         if(serverSelect==0)
         {
 		driver.get("https://" + user + ":" + pw + "@" + serverName + ".hewitt.com/");
@@ -39,13 +51,17 @@ public class Server {
         }
 	}	
 	
-	public void CreateServerLogs() throws FileNotFoundException, UnsupportedEncodingException{
-		System.setProperty("webdriver.chrome.driver", "C://schema_creation/chromedriver.exe");
-        WebDriver driver = new ChromeDriver();
+	public static void CreateServerLogs() throws FileNotFoundException, UnsupportedEncodingException{
+		//System.setProperty("webdriver.ie.driver","C://schema_creation//IEDriverServer.exe");
+	     //WebDriver driver = new InternetExplorerDriver();
+	     WebDriver driver = new FirefoxDriver();
         
         PrintWriter writer = null;
         writer = new PrintWriter("C://Triage_Dashboard//wmTestLogs054.txt", "UTF-8");
-        driver.get("https://"+user+":"+pw+"@l4dwipap054/WmRoot/log-server-recent.dsp");
+        driver.get("https://pconor:Spektor33!@l4dwipap054/WmRoot/log-server-recent.dsp");
+//        if(findElementByXpath("//a[@id='overridelink']")){
+//			driver.findElement(By.xpath("//a[@id='overridelink']")).click();
+//		}
         WebElement baseTable = driver.findElement(By.xpath("//form[@name='logform']/table/tbody/tr[5]/td/table"));
         List<WebElement> tableRows = baseTable.findElements(By.tagName("tr"));
         for(int i=0;i<tableRows.size();i++){
@@ -97,7 +113,6 @@ public class Server {
 				e.printStackTrace();
 			}
 			ArrayList<ListItem> listItems = new ArrayList<ListItem>();
-			System.setProperty("webdriver.chrome.driver", "C://schema_creation/chromedriver.exe");
 	        for(int m=4;m<8;m++){
 	        	int fileCount = 0;
 				String temp[];	
@@ -106,8 +121,13 @@ public class Server {
 	        WebElement baseTable1a = driver.findElement(By.xpath("//form[@name='logform']/table/tbody/tr[5]/td/table/tbody/tr[1]"));
 	        WebElement baseTable2a = driver.findElement(By.xpath("//form[@name='logform']/table/tbody/tr[5]/td/table/tbody/tr[2]"));
 	        WebElement baseTable3a = driver.findElement(By.xpath("//form[@name='logform']/table/tbody/tr[5]/td/table/tbody/tr[3]"));
-
+	        
 	        List<WebElement> tableRows1 = baseTable1.findElements(By.tagName("td"));
+	        System.out.println("Table Rows: " +tableRows1.size());
+	        if(tableRows1.size()>500){
+	        	
+	        }
+	        else{
 	        for(int i=0; i<tableRows1.size();i++){
 	        	if(tableRows1.get(i).getText().startsWith("2014")){
 	        		fileCount++;
@@ -247,7 +267,7 @@ public class Server {
 	        for(int i=0;i<listItems.size();i++){
 	        	System.out.println((listItems.get(i).getFileID()+"|"+listItems.get(i).getDateTime()+"|"+listItems.get(i).getServer()+"|"+listItems.get(i).getService()+"|"+listItems.get(i).getErrorMessage()+"|"+listItems.get(i).getStackTrace()));
 	        }
-	        
+	        }
 	        return listItems;
 	        
 	}

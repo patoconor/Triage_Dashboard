@@ -16,7 +16,7 @@ public class ListItem {
 	private String fileID;
 	private String devName;
 	private String date;
-	private String time;
+	private static String time;
 	private String serviceLocation;
 	private String errorMessage;
 	private String server;
@@ -78,6 +78,12 @@ public class ListItem {
 		setStackTrace(stack);
 		setErrorMessage(error);
 		setService(service);
+	}
+	public static void adjustTime(){
+		int hour = Integer.parseInt(time.split(":")[0]);
+		String min = time.split(":")[1];
+		hour = hour+1;
+		time = (Integer.toString(hour)+":"+min);
 	}
 	
 	private void parseLineFromFile(String Line, int erid, String resolution)

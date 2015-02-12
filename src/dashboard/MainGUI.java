@@ -14,6 +14,8 @@ import java.io.UnsupportedEncodingException;
 import javax.swing.*;
 import javax.swing.event.*;
 
+import net.fortuna.ical4j.data.ParserException;
+
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 
@@ -23,6 +25,7 @@ import com.wm.util.FileUtil;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -103,9 +106,10 @@ public class MainGUI extends JPanel
         
     
     
-    public MainGUI() throws ClassNotFoundException, InstantiationException, IllegalAccessException, UnsupportedLookAndFeelException {
+    public MainGUI() throws ClassNotFoundException, InstantiationException, IllegalAccessException, UnsupportedLookAndFeelException, IOException, ParserException {
 
     	UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+    	
     	
     	//list of errors in left pane
     	errorList= new DefaultListModel<>();
@@ -140,7 +144,7 @@ public class MainGUI extends JPanel
 			  new Thread(new Runnable() {
 			        public void run() {
 			        	try {
-							createAndShowGUI2();
+			        	createAndShowGUI2();
 						} catch (ClassNotFoundException e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
@@ -230,8 +234,18 @@ public class MainGUI extends JPanel
 			                    }
 			                  }
 			                  
-			                  
+//			                  if(new File("C://Triage_Dashboard/updateLib.bat").isFile()==false){
+//				                    File source2 = new File("R://BenIT/Files/All/Tools/TriageDashboard/updateLib.bat");
+//				                    File desc1 = new File("C://Triage_Dashboard/updateLib.bat");
+//				                    try {
+//				                      FileUtil.copyTo(source2, desc1);
+//				                    } catch (IOException e1) {
+//				                      // TODO Auto-generated catch block
+//				                      e1.printStackTrace();
+//				                    }
+//				                  }
 			                  try {
+			                	//Runtime.getRuntime().exec("cmd /c start C://Triage_Dashboard/updateLib.bat");
 			                    Runtime.getRuntime().exec("cmd /c start C://Triage_Dashboard/updateTD.bat");
 			                    System.exit(0);
 			                  } catch (IOException e1) {
@@ -316,8 +330,8 @@ public class MainGUI extends JPanel
                 d.setTime( c.getTime().getTime() );
                 DateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy");
                 setDateSelect(dateFormat.format(d));
-                String one = "select DISTINCT * from TRIAGE WHERE ERDATE >= '"+dateSelect+"' order by ERDATE desc, ERTIME desc";
-                String two = "select DISTINCT * from TRIAGE WHERE ERDATE >= '"+dateSelect+"' AND STATUS != 2 order by ERDATE desc, ERTIME desc";
+                String one = "select DISTINCT * from TRIAGE WHERE ERDATE >= Date '"+dateSelect+"' order by ERDATE desc, ERTIME desc";
+                String two = "select DISTINCT * from TRIAGE WHERE ERDATE >= Date '"+dateSelect+"' AND STATUS != 2 order by ERDATE desc, ERTIME desc";
 	            String finalone = "";
                 if(hideComplete==true){
                 	finalone = two;
@@ -449,7 +463,7 @@ public class MainGUI extends JPanel
     
     
     //Shows the corresponding information for a selected error
-    private void setupErrorPanel() {
+    private void setupErrorPanel() throws IOException, ParserException {
     	errorViewPanel.setLayout(null);
     	
     	int yShift=30;
@@ -507,6 +521,7 @@ public class MainGUI extends JPanel
 		  public void actionPerformed(ActionEvent evt) {			  
 			  new Thread(new Runnable() {
 			        public void run() {
+			        	bLookingIntoIt.setEnabled(false);
 			        	if(getCurrentItem().getExpectNum()!=0)
 			        	{
 			        		int replyIndex = list.getSelectedIndex();
@@ -524,11 +539,13 @@ public class MainGUI extends JPanel
 				        		{
 				        		Fdriver.closeDriver();
 				        		changeErrorStatus(1,errorList.get(replyIndex));
+				        		bLookingIntoIt.setEnabled(true);
 				        		}
 			        		}
 			        		catch(Exception e)
 			        		{
 			        			Fdriver.closeDriver();
+			        			bLookingIntoIt.setEnabled(true);
 			        			JOptionPane.showMessageDialog(null,"There was an error while attempting to reply.");
 			        		}
 			        	}
@@ -632,15 +649,15 @@ public class MainGUI extends JPanel
         */
         
         JButton bIncomplete = new JButton("Incomplete");
-        bIncomplete.setBounds(154, 370, 100, 20);
+        bIncomplete.setBounds(154, 371, 85, 20);
         errorViewPanel.add(bIncomplete);
         
         JButton bInProgress = new JButton("In Progress");
-        bInProgress.setBounds(264, 370, 100, 20);
+        bInProgress.setBounds(269, 371, 95, 20);
         errorViewPanel.add(bInProgress);
         
         JButton bCompleted = new JButton("Completed");
-        bCompleted.setBounds(374, 370, 100, 20);
+        bCompleted.setBounds(397, 371, 85, 20);
         errorViewPanel.add(bCompleted);
         
         JLabel lServerName = new JLabel("Server Name:");
@@ -804,13 +821,48 @@ public class MainGUI extends JPanel
 		
 		JPanel pResolution = new JPanel();
 		pResolution.setBounds(599, 400, 451, 241);
-		pResolution.setLayout(new BoxLayout(pResolution,BoxLayout.Y_AXIS));
 		pResolution.setBorder(BorderFactory.createLineBorder(Color.BLACK));
     	errorViewPanel.add(pResolution);
+    	pResolution.setLayout(null);
     	
     	JLabel lblResolution = new JLabel("Previously Submitted Resolution:");
+    	lblResolution.setSize(157, 14);
+    	lblResolution.setLocation(147, 1);
     	lblResolution.setAlignmentX(Component.CENTER_ALIGNMENT);
 		pResolution.add(lblResolution);
+		
+		JButton btnNewButton = new JButton("Submit Resolution");
+		btnNewButton.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				Connection connection = null;
+			       ResultSet resultSet = null;
+			       Statement statement = null;
+				try {
+			           Class.forName("org.firebirdsql.jdbc.FBDriver");
+			           connection = DriverManager
+			                   .getConnection(
+			                           "jdbc:firebirdsql://NUSDD2F0J6M1:3050/C:/database/BASE.fdb",
+			                           "sysdba", "masterkey");
+			           statement = connection.createStatement();
+			           statement.executeUpdate("UPDATE TRIAGE set RESOLUTION = '"+textArea.getText()+"'where ERRORID = "+getCurrentItem().getErid()+"");
+			           
+					} catch (Exception e1) {
+			           e1.printStackTrace();
+			       }
+				try {
+					connection.close();
+					statement.close();
+				} catch (SQLException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+				
+			}
+		});
+		btnNewButton.setSize(117, 23);
+		btnNewButton.setLocation(328, 4);
+		pResolution.add(btnNewButton);
 		
 		textArea = new JTextArea();
 		textArea.setLineWrap(true);
@@ -819,6 +871,7 @@ public class MainGUI extends JPanel
 		
 		JScrollPane scroll2 = new JScrollPane (textArea, 
  			   JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+		scroll2.setBounds(1, 38, 449, 202);
 
 		pResolution.add(scroll2);
 		
@@ -870,9 +923,45 @@ public class MainGUI extends JPanel
 		btnGo.setBounds(169, 54, 51, 23);
 		errorViewPanel.add(btnGo);
 		
-		JLabel lblV = new JLabel("v_1.1.0");
+		JLabel lblV = new JLabel("v_1.1.2");
 		lblV.setBounds(359, 17, 46, 14);
 		errorViewPanel.add(lblV);
+		
+		Label label = new Label("");
+		label.setBackground(Color.WHITE);
+		label.setForeground(Color.LIGHT_GRAY);
+		label.setBounds(126, 370, 22, 22);
+		errorViewPanel.add(label);
+		
+		Label label_1 = new Label("");
+		label_1.setForeground(Color.LIGHT_GRAY);
+		label_1.setBackground(Color.YELLOW);
+		label_1.setBounds(244, 370, 22, 22);
+		errorViewPanel.add(label_1);
+		
+		Label label_2 = new Label("");
+		label_2.setForeground(Color.LIGHT_GRAY);
+		label_2.setBackground(new Color(0, 255, 0));
+		label_2.setBounds(371, 370, 22, 22);
+		errorViewPanel.add(label_2);
+		
+		JLabel lblOnDuty = new JLabel("On Duty:");
+		lblOnDuty.setFont(new Font("Tahoma", Font.PLAIN, 13));
+		lblOnDuty.setBounds(10, 17, 61, 14);
+		errorViewPanel.add(lblOnDuty);
+		
+		JLabel lblNewLabel = new JLabel("");
+		lblNewLabel.setFont(new Font("Tahoma", Font.PLAIN, 13));
+		lblNewLabel.setForeground(Color.MAGENTA);
+		lblNewLabel.setBounds(68, 17, 71, 14);
+		errorViewPanel.add(lblNewLabel);
+		
+		
+		
+		
+		
+	    Schedule.main(null);
+    	lblNewLabel.setText(Schedule.onDuty);
 		bViewExpectations.addActionListener(new ActionListener() {
 		  public void actionPerformed(ActionEvent evt) {			  
 			  new Thread(new Runnable() {
@@ -880,7 +969,12 @@ public class MainGUI extends JPanel
 			        	System.setProperty("webdriver.chrome.driver", "C://schema_creation/chromedriver.exe");
 			        	WebDriver dr = new ChromeDriver();
 			        	FIST Fdriver = new FIST(sFistUser,sFistPass,sOfficeLocation,false,dr);
-			        	Fdriver.loginConfig();
+			        	try {
+							Fdriver.loginConfig();
+						} catch (InterruptedException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
 			        	Fdriver.getExpectationsPage(getCurrentItem().getFileID(),getCurrentItem().getDate());
 			                
 			            }}).start();}});
@@ -1189,7 +1283,15 @@ public class MainGUI extends JPanel
     	previousIndex=0;
         frame = new JFrame("Triage Dashboard");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        window = new MainGUI();
+        try {
+			window = new MainGUI();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ParserException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
         frame.getContentPane().add(window.getPane());
         //frame.setMinimumSize(new Dimension(500, 300));
 
@@ -1201,31 +1303,46 @@ public class MainGUI extends JPanel
     }
     
     private static void createAndShowGUI2() throws ClassNotFoundException, InstantiationException, IllegalAccessException, UnsupportedLookAndFeelException {
-    	
+    	int select = getCurrentItem().getSelectedExpectNum();
     	frame.getContentPane().removeAll();
+    	if(errorList.size()==0){
+    		index = 0;
+    	}
+    	else{
     	index = list.getSelectedValue().getErid();
+    	}
     	frameSize = window.getPane().getSize();
     	String ReplyText = tpReplyText.getText();
     //	int expectIndex = cbExpectationSelect.getSelectedIndex();
-    	window = new MainGUI();
+    	try {
+			window = new MainGUI();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ParserException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
         frame.getContentPane().add(window.getPane());
 
         //Display the window.
         frame.pack();
         frame.setVisible(true);
       //  cbExpectationSelect.setSelectedIndex(expectIndex);
+        cbExpectationSelect.setSelectedIndex(select);
         tpReplyText.setText(ReplyText);
     }
-
+    
     public static void main(String[] args) {
         //Schedule a job for the event-dispatching thread:
         //creating and showing this application's GUI.
+
         javax.swing.SwingUtilities.invokeLater(new Runnable() {
             public void run() {
                 try {
                 	daysPast = "0";
 					createAndShowGUI();
-					
+					//updater();
 				} catch (ClassNotFoundException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
